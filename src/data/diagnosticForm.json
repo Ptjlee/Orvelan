@@ -1,0 +1,842 @@
+[
+  {
+    "id": "entry.77439603",
+    "title": "Nom de la société ",
+    "options": [],
+    "titleEn": "Company Name",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.9769321",
+    "title": "Taille ",
+    "options": [
+      "0 à 10 salariés",
+      "11 à 50 salariés",
+      "51 à 150 salariés",
+      ">150 salariés"
+    ],
+    "titleEn": "Size",
+    "optionsEn": [
+      "0 to 10 employees",
+      "11 to 50 employees",
+      "51 to 150 employees",
+      ">150 employees"
+    ]
+  },
+  {
+    "id": "entry.1729498401",
+    "title": "Type  ",
+    "options": [
+      "PME",
+      "PME familiale",
+      "ETI",
+      "Filiale de groupe"
+    ],
+    "titleEn": "Type",
+    "optionsEn": [
+      "SME",
+      "Family SME",
+      "Mid-cap",
+      "Subsidiary"
+    ]
+  },
+  {
+    "id": "entry.1512143988",
+    "title": "Domaine d'activité ",
+    "options": [],
+    "titleEn": "Industry",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.505183019",
+    "title": "Votre nom ",
+    "options": [],
+    "titleEn": "Your Name",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.338424681",
+    "title": "Votre fonction ",
+    "options": [],
+    "titleEn": "Your Role",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.2093280645",
+    "title": "Votre E-mail et/ou telephone",
+    "options": [],
+    "titleEn": "Your Email and/or phone",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.1101666432",
+    "title": "L1 - Dans mon entreprise, chacun sait clairement ce qui est de sa responsabilité — et ce qui ne l’est pas.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L1 - In my company, everyone knows clearly what their responsibility is — and what isn’t.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1117706364",
+    "title": "L2 - Ce que je pense que mes collaborateurs font correspond à ce qu’ils pensent faire eux-mêmes.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L2 - What I think my employees do matches what they think they do.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.599643246",
+    "title": "L3 -  Je sais où se prennent vraiment les décisions importantes — pas où elles devraient se prendre.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L3 - I know where important decisions are actually made — not where they should be made.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1969288922",
+    "title": "L4 -  Mes équipes savent ce qui passe avant en ce moment — sans que j’aie besoin de le répéter.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L4 - My teams know what comes first right now — without me having to repeat it.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1050854348",
+    "title": "L5 -  Je sais précisément quelles personnes, si elles partaient demain, créeraient une vraie désorganisation.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L5 - I know exactly which people would create a real disorganization if they left tomorrow.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.523349934",
+    "title": "L6 -  Les règles non écrites de mon entreprise — ce qui se fait, ce qui ne se fait pas — sont partagées et comprises.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L6 - The unwritten rules of my company — what is done, what is not done — are shared and understood.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.629321043",
+    "title": "L7 -  Quand un problème lié à quelqu’un dans l’entreprise apparaît, je sais rapidement qui doit le traiter — et ce n’est pas toujours moi.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L7 - When a people-related problem arises in the company, I quickly know who should handle it — and it’s not always me.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.702486796",
+    "title": "L8 -  Mon entreprise sait fonctionner normalement quand je suis absent, en déplacement ou indisponible.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L8 - My company knows how to function normally when I am absent, traveling, or unavailable.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1025971480",
+    "title": "L9 -  Si quelqu’un de l’extérieur (nouveau manager, repreneur, partenaire) devait comprendre comment mon entreprise fonctionne vraiment, ce serait facile à lui expliquer.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "L9 - If an outsider (new manager, buyer, partner) had to understand how my company really works, it would be easy to explain.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.479524650",
+    "title": "M1 -  Les sujets délicats concernant mes collaborateurs sont anticipés — je ne les découvre pas quand ils sont déjà problématiques.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M1 - Delicate subjects concerning my employees are anticipated — I don't discover them when they are already problematic.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1965444141",
+    "title": "M2 -  Les décisions concernant mes équipes ne passent pas toutes par moi.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M2 - Decisions concerning my teams do not all pass through me.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.208980982",
+    "title": "M3 -  Si l’un de mes collaborateurs clés partait demain de façon imprévue, mon entreprise pourrait absorber le choc sans désorganisation majeure.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M3 - If one of my key employees left tomorrow unexpectedly, my company could absorb the shock without major disorganization.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1837720941",
+    "title": "M4 -  Mes managers savent exactement ce qu’ils peuvent décider sans me consulter.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M4 - My managers know exactly what they can decide without consulting me.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1876866153",
+    "title": "M5 -  Les règles importantes de mon entreprise sont respectées de la même façon par tout le monde — pas seulement quand je regarde.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M5 - The important rules of my company are respected in the same way by everyone — not just when I'm looking.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1207673862",
+    "title": "M6 -  Quand il y a un conflit ou une situation difficile dans mon entreprise, ça se règle — ça ne s’enlise pas.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M6 - When there is a conflict or a difficult situation in my company, it gets resolved — it doesn't drag on.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.533373635",
+    "title": "M7 -  Je me sens globalement maître de la situation concernant mes équipes — je ne suis pas en réaction permanente.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M7 - I generally feel in control of the situation regarding my teams — I am not constantly reacting.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1444629700",
+    "title": "M8 -  Les problèmes liés aux personnes ne remontent pas tous jusqu’à moi — ils sont traités avant.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tour à fait"
+    ],
+    "titleEn": "M8 - People-related problems don't all come up to me — they are handled beforehand.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1754896168",
+    "title": "M9 -  Mon agenda n’est pas dominé par des arbitrages ou des tensions internes que mes managers auraient dû gérer.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "M9 - My schedule is not dominated by arbitrations or internal tensions that my managers should have handled.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1858183732",
+    "title": "S1 - Le temps que je consacre aux sujets d’équipe est raisonnable par rapport à ce que je devrais donner au développement de mon entreprise.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S1 - The time I spend on team topics is reasonable compared to what I should give to the development of my company.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1624045123",
+    "title": "S2 - Quand une tension ou un conflit apparaît dans mes équipes, il est résolu sans me mobiliser de façon excessive.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S2 - When a tension or conflict appears in my teams, it is resolved without mobilizing me excessively.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.2091108902",
+    "title": "S3 - Je peux me concentrer sur le développement de mon entreprise sans être constamment freiné par des problèmes internes liés aux personnes.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S3 - I can focus on the development of my company without being constantly held back by internal people-related problems.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1390317500",
+    "title": "S4 - Mon entreprise ne dépend pas de l’engagement exceptionnel de quelques individus pour tenir.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S4 - My company does not depend on the exceptional commitment of a few individuals to keep going.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1293797970",
+    "title": "S5 -  Les sujets liés à mes équipes ne m’empêchent pas de dormir.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S5 - Topics related to my teams don't keep me up at night.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.14019319",
+    "title": "S6 -  Quand j’ai pris une décision difficile concernant quelqu’un dans mon entreprise, je passe à autre chose sans que ça m’encombre longtemps.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S6 - When I have made a difficult decision regarding someone in my company, I move on without it bothering me for long.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.594701107",
+    "title": "S7 -  L’ambiance dans mon entreprise est saine — les gens viennent travailler sans tension de fond.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S7 - The atmosphere in my company is healthy — people come to work without underlying tension.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.59353740",
+    "title": "S8 -  Mes managers m’apportent des solutions plutôt que de me soumettre des problèmes.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S8 - My managers bring me solutions rather than submitting problems to me.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1181065956",
+    "title": "S9 -  Gérer et développer mes équipes me donne globalement de l’énergie — plus qu’elle ne m’en prend.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S9 - Managing and developing my teams generally gives me energy — more than it takes from me.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1671053789",
+    "title": "S10 -  Quand je pars en vacances, je peux vraiment décrocher des sujets internes liés à mes équipes.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "S10 - When I go on vacation, I can truly disconnect from internal topics related to my teams.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.2012565021",
+    "title": "R1 - Si l’une de mes personnes clés partait ou s’absentait longuement, mon activité continuerait sans désorganisation majeure.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R1 - If one of my key people left or was absent for a long time, my activity would continue without major disorganization.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.197263034",
+    "title": "R2 - Les décisions importantes dans mon entreprise peuvent être prises même si je suis indisponible pendant plusieurs jours.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R2 - Important decisions in my company can be made even if I am unavailable for several days.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1812359101",
+    "title": "R3 - Les fonctions essentielles de mon entreprise sont assez bien documentées et comprises pour être reprises temporairement par quelqu’un d’autre.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R3 - The essential functions of my company are well enough documented and understood to be taken over temporarily by someone else.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1769701108",
+    "title": "R4 - Mon entreprise saurait traverser un changement important — croissance rapide, perte d’un client majeur, restructuration — sans perdre ses repères.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R4 - My company would know how to traverse a major change — rapid growth, loss of a major client, restructuring — without losing its bearings.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1100401178",
+    "title": "R5 - En cas d’imprévu important, mes équipes sauraient ce qui prime — sans attendre que je leur dise.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R5 - In case of a major unforeseen event, my teams would know what takes priority — without waiting for me to tell them.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.538643324",
+    "title": "R6 - Je suis confiant dans la capacité de mon entreprise à tenir dans la durée, même si le contexte économique ou sectoriel évolue.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R6 - I am confident in the capacity of my company to last over time, even if the economic or sectoral context evolves.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.615183359",
+    "title": "R7 - Mon entreprise a la capacité d’adapter ses rythmes et ses priorités quand une contrainte externe s’installe durablement (crise, pénurie, réglementation).",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R7 - My company has the capacity to adapt its rhythms and priorities when an external constraint settles in durably (crisis, shortage, regulation).",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.34034315",
+    "title": "R8 - Si mon entreprise devait traverser 6 mois difficiles, je suis confiant qu’elle sortirait de cette période sans rupture majeure dans l’organisation.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R8 - If my company had to go through 6 difficult months, I am confident it would emerge from this period without a major rupture in the organization.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.2016655728",
+    "title": "R9 - Si je devais vendre ou transmettre mon entreprise dans les 3 prochaines années, son fonctionnement serait suffisamment structuré pour convaincre un repreneur ou un partenaire.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R9 - If I had to sell or transfer my company in the next 3 years, its operation would be structured enough to convince a buyer or partner.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.1050975381",
+    "title": "R10 - Mes équipes connaissent les enjeux importants de l’entreprise — pas seulement leurs objectifs individuels.",
+    "options": [
+      "Pas du tout",
+      "Plutôt non",
+      "En partie",
+      "Plutôt oui",
+      "Tout à fait"
+    ],
+    "titleEn": "R10 - My teams know the important stakes of the company — not just their individual objectives.",
+    "optionsEn": [
+      "Not at all",
+      "Mostly no",
+      "Partially",
+      "Mostly yes",
+      "Absolutely"
+    ]
+  },
+  {
+    "id": "entry.228342371",
+    "title": "P1 - Si vous ne pouviez agir que sur une seule chose dans votre entreprise aujourd’hui, ce serait :",
+    "options": [
+      "La clarté des rôles et responsabilités",
+      "La dépendance à certaines personnes clés",
+      "La qualité de mes recrutements",
+      "La montée en compétence de mes managers",
+      "L'ambiance et la cohésion de l'équipe",
+      ""
+    ],
+    "titleEn": "P1 - If you could only act on one thing in your company today, it would be:",
+    "optionsEn": [
+      "Clarity of roles and responsibilities",
+      "Dependence on key people",
+      "Quality of my hires",
+      "Upskilling my managers",
+      "Team atmosphere and cohesion",
+      ""
+    ]
+  },
+  {
+    "id": "entry.1821091678",
+    "title": "P2 - Si vous pouviez améliorer une seule chose dans le fonctionnement humain de votre entreprise, ce serait :",
+    "options": [],
+    "titleEn": "P2 - If you could improve one single thing in the human functioning of your company, it would be:",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.458796749",
+    "title": "P3 - Dans les 3 à 6 prochains mois, ce que je veux vraiment gagner c’est :",
+    "options": [],
+    "titleEn": "P3 - In the next 3 to 6 months, what I really want to gain is:",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.923509378",
+    "title": "P4 -  Dans 12 à 24 mois, l’enjeu principal pour mon entreprise est :",
+    "options": [],
+    "titleEn": "P4 - In 12 to 24 months, the main challenge for my company is:",
+    "optionsEn": []
+  },
+  {
+    "id": "entry.500058085",
+    "title": "P5 -  Y a-t-il quelque chose que vous n’avez pas pu exprimer dans ce questionnaire et qui vous semble important ?",
+    "options": [],
+    "titleEn": "P5 - Is there anything you couldn't express in this questionnaire and that seems important to you?",
+    "optionsEn": []
+  }
+]
