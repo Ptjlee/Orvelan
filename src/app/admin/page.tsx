@@ -11,8 +11,8 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
       strong: ({node, ...props}) => <span className="font-semibold text-primary-midnight" {...props} />,
       ol: ({node, ...props}) => <ol className="list-decimal pl-5 space-y-2 mb-4" {...props} />,
       ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-2 mb-4" {...props} />,
-      li: ({node, ...props}) => <li className="text-primary-charcoal" {...props} />,
-      p: ({node, ...props}) => <p className="mb-4 last:mb-0" {...props} />,
+      li: ({node, ...props}) => <li className="text-primary-charcoal marker:text-primary-copper" {...props} />,
+      p: ({node, ...props}) => <p className="mb-4 last:mb-0 whitespace-pre-wrap" {...props} />,
       h1: ({node, ...props}) => <h1 className="text-2xl font-serif text-primary-midnight mb-4 mt-6" {...props} />,
       h2: ({node, ...props}) => <h2 className="text-xl font-serif text-primary-midnight mb-3 mt-5" {...props} />,
       h3: ({node, ...props}) => <h3 className="text-lg font-serif text-primary-midnight mb-2 mt-4" {...props} />,
@@ -42,6 +42,7 @@ export default function AdminPage() {
   const [diagnostics, setDiagnostics] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<any | null>(null);
 
   // Hardcoded for beta MVP. Replace with NextAuth/Supabase Auth later.
@@ -103,6 +104,39 @@ export default function AdminPage() {
       alert(lang === 'fr' ? "Erreur lors de la regénération." : "Error during regeneration.");
     } finally {
       setRegenerating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedEntry) return;
+    
+    const confirmMessage = lang === 'fr' 
+      ? 'Êtes-vous sûr de vouloir supprimer cette entrée ? (Les données resteront dans Google Forms)' 
+      : 'Are you sure you want to delete this entry? (The raw data will remain in Google Forms)';
+      
+    if (!confirm(confirmMessage)) return;
+
+    setDeleting(true);
+    try {
+      const response = await fetch("/api/admin/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedEntry.id })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        alert(lang === 'fr' ? "Entrée supprimée avec succès!" : "Entry successfully deleted!");
+        setSelectedEntry(null);
+        fetchDiagnostics(); // refresh list
+      } else {
+        alert((lang === 'fr' ? "Erreur: " : "Error: ") + result.error);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(lang === 'fr' ? "Erreur lors de la suppression." : "Error during deletion.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -194,10 +228,17 @@ export default function AdminPage() {
                   </a>
                   <button 
                     onClick={handleRegenerate}
-                    disabled={regenerating}
+                    disabled={regenerating || deleting}
                     className="border border-primary-midnight text-primary-midnight px-5 py-2.5 text-sm font-medium hover:bg-primary-copper/5 transition-colors disabled:opacity-50 uppercase tracking-widest"
                   >
                     {regenerating ? (lang === 'fr' ? 'Analyse en cours...' : 'Analyzing...') : (lang === 'fr' ? 'Regénérer (IA)' : 'Regenerate (AI)')}
+                  </button>
+                  <button 
+                    onClick={handleDelete}
+                    disabled={regenerating || deleting}
+                    className="border border-red-500 text-red-500 px-5 py-2.5 text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50 uppercase tracking-widest"
+                  >
+                    {deleting ? (lang === 'fr' ? 'Suppression...' : 'Deleting...') : (lang === 'fr' ? 'Supprimer' : 'Delete')}
                   </button>
                 </div>
               </div>
