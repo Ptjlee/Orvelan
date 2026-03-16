@@ -93,22 +93,23 @@ export default function DiagnosticPage() {
     });
 
     try {
-      // 3. Fire-and-forget to our internal backend (AI + Supabase)
-      fetch("/api/diagnostic", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(readableData)
-      }).catch(err => console.error("Internal API Error:", err));
-
-      // 4. Send directly to Google Forms
-      await fetch(
-        "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse",
-        {
+      // 3 & 4. Send to internal backend (AI + Supabase) and Google Forms concurrently
+      await Promise.all([
+        fetch("/api/diagnostic", {
           method: "POST",
-          mode: "no-cors",
-          body: data,
-        }
-      );
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(readableData)
+        }).catch(err => console.error("Internal API Error:", err)),
+        
+        fetch(
+          "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse",
+          {
+            method: "POST",
+            mode: "no-cors",
+            body: data,
+          }
+        )
+      ]);
       setSubmitted(true);
     } catch (err) {
       console.error(err);
