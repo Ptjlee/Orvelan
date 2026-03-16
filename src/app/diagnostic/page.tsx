@@ -87,7 +87,7 @@ export default function DiagnosticPage() {
     });
 
     // 2. Build form data payload for Google Forms
-    const data = new FormData();
+    const data = new URLSearchParams();
     Object.entries(formData).forEach(([key, value]) => {
       data.append(key, value);
     });

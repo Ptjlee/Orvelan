@@ -13,7 +13,7 @@ export function Contact({ lang }: { lang: "fr" | "en" }) {
     const formData = new FormData(e.currentTarget);
     try {
       await fetch(
-        "https://docs.google.com/forms/d/e/1FAIpQLSeOCNLnJFMqxwk3aTMVIlixF3T5_opc1sZMNch1R_S0Ihdb_w/formResponse",
+        "https://docs.google.com/forms/d/e/1FAIpQLSfnk2OJXsarwjjo-ajAtz3JK2Q964aRe6bkW_25nr9VuauTFw/formResponse",
         { method: "POST", mode: "no-cors", body: formData }
       );
       setSubmitted(true);
@@ -58,14 +58,14 @@ export function Contact({ lang }: { lang: "fr" | "en" }) {
               <div className="flex flex-col md:flex-row gap-8">
                 <input 
                   type="text" 
-                  name="entry.381342769" 
+                  name="entry.54022395" 
                   required 
                   placeholder={lang === 'fr' ? 'Nom complet *' : 'Full name *'}
                   className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
                 />
                 <input 
                   type="text" 
-                  name="entry.2143601721" 
+                  name="entry.2020444487" 
                   required 
                   placeholder={lang === 'fr' ? 'Société *' : 'Company *'}
                   className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
@@ -74,7 +74,7 @@ export function Contact({ lang }: { lang: "fr" | "en" }) {
 
               <input 
                 type="text" 
-                name="entry.477835016" 
+                name="entry.2147398256" 
                 required 
                 placeholder={lang === 'fr' ? 'Email / Téléphone *' : 'Email / Phone *'}
                 className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
@@ -82,7 +82,7 @@ export function Contact({ lang }: { lang: "fr" | "en" }) {
 
               <div className="flex flex-col md:flex-row gap-8">
                 <select 
-                  name="entry.1122438246" 
+                  name="entry.1280987535" 
                   className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-silver/80 focus:text-primary-midnight focus:border-primary-midnight outline-none transition-colors cursor-pointer appearance-none"
                 >
                   <option value="" disabled selected>{lang === 'fr' ? 'Taille de la société' : 'Company size'}</option>
@@ -92,7 +92,7 @@ export function Contact({ lang }: { lang: "fr" | "en" }) {
                   <option value="250+">250+</option>
                 </select>
                 <select 
-                  name="entry.1367478704" 
+                  name="entry.1629878505" 
                   className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-silver/80 focus:text-primary-midnight focus:border-primary-midnight outline-none transition-colors cursor-pointer appearance-none"
                 >
                   <option value="" disabled selected>{lang === 'fr' ? 'Urgence' : 'Urgency'}</option>
@@ -103,7 +103,7 @@ export function Contact({ lang }: { lang: "fr" | "en" }) {
               </div>
 
               <textarea 
-                name="entry.1884243342" 
+                name="entry.1831768157" 
                 rows={1}
                 placeholder={lang === 'fr' ? 'En une phrase, qu\'est ce qui vous amène ?' : 'In a phrase, what brings you here?'}
                 className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60 resize-none overflow-hidden"
