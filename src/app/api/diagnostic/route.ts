@@ -9,32 +9,40 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const GOOGLE_FORM_VIEW_URL = "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/viewform";
 const GOOGLE_FORM_POST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse";
 
-// Fetches the Google Form page first to extract required hidden session fields (fbzx, fvv, pageHistory, etc.)
-async function getFormHiddenFields(): Promise<Record<string, string>> {
-  try {
-    const res = await fetch(GOOGLE_FORM_VIEW_URL, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      }
-    });
-    const html = await res.text();
+const BROWSER_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
-    const fields: Record<string, string> = {};
-    // Extract all hidden fields except entry.* ones
-    const matches = html.matchAll(/name="([^"]+)"\s+value="([^"]*)"/g);
-    for (const m of matches) {
-      const name = m[1];
-      const value = m[2].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
-      if (!name.startsWith("entry.")) {
-        fields[name] = value;
-      }
+// Fetches the Google Form to get the required session cookie + hidden fields (fbzx, fvv, etc.)
+// Google Forms requires the session cookie from the page load to be sent with the POST submission.
+// Without it, Google records a timestamp but stores all field values as empty.
+async function getFormSession(): Promise<{ cookieStr: string; hiddenFields: Record<string, string> }> {
+  const getRes = await fetch(GOOGLE_FORM_VIEW_URL, {
+    headers: {
+      "User-Agent": BROWSER_UA,
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "fr-FR,fr;q=0.9",
+    },
+    redirect: "follow"
+  });
+
+  // Capture the session cookie Google sets when loading the form
+  const setCookieHeader = getRes.headers.get("set-cookie") || "";
+  const cookies = setCookieHeader.split(",").map(c => c.split(";")[0].trim()).filter(Boolean);
+  const cookieStr = cookies.join("; ");
+
+  const html = await getRes.text();
+
+  // Extract all hidden fields (fbzx, fvv, pageHistory, partialResponse, submissionTimestamp)
+  const hiddenFields: Record<string, string> = {};
+  const matches = html.matchAll(/name="([^"]+)"\s+value="([^"]*)"/g);
+  for (const m of matches) {
+    const name = m[1];
+    const value = m[2].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+    if (!name.startsWith("entry.")) {
+      hiddenFields[name] = value;
     }
-    return fields;
-  } catch (err) {
-    console.error("Failed to fetch Google Form hidden fields:", err);
-    return {};
   }
+
+  return { cookieStr, hiddenFields };
 }
 
 // Runs AI analysis + saves to Sanity in the background (after response is sent to client)
@@ -135,50 +143,53 @@ export async function POST(req: Request) {
     const email = emailKey ? data[emailKey] : "Unknown";
     const company = companyKey ? data[companyKey] : "Unknown";
 
-    // 1. Fetch Google Form page to get required hidden session fields (fbzx, fvv, pageHistory, etc.)
-    //    Without these, Google Forms records the timestamp but stores all field values as empty.
-    const hiddenFields = await getFormHiddenFields();
-    console.log("Fetched hidden fields:", Object.keys(hiddenFields));
-
-    // 2. Relay to Google Forms server-side with ALL required fields
+    // 1. Load the Google Form page to get the session cookie + hidden fields.
+    //    Google Forms uses a session cookie (S=spreadsheet_forms=...) paired with
+    //    the fbzx token as CSRF protection. Both must be present for field data to be stored.
     if (rawEntryData) {
       try {
+        const { cookieStr, hiddenFields } = await getFormSession();
+        console.log("Session cookie:", cookieStr.substring(0, 80));
+        console.log("Hidden fields:", Object.keys(hiddenFields));
+
         const formParams = new URLSearchParams();
-        // Add hidden fields first (fvv, pageHistory, fbzx, submissionTimestamp, etc.)
+        // Add session-bound hidden fields first
         Object.entries(hiddenFields).forEach(([key, value]) => {
           formParams.append(key, value);
         });
-        // Add actual form answers
+        // Add form answers
         Object.entries(rawEntryData).forEach(([key, value]) => {
           formParams.append(key, value);
         });
 
-        console.log("Submitting to Google Forms with keys:", [...formParams.keys()].join(", "));
+        const postHeaders: Record<string, string> = {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": BROWSER_UA,
+          "Referer": GOOGLE_FORM_VIEW_URL,
+          "Origin": "https://docs.google.com",
+        };
+        if (cookieStr) {
+          postHeaders["Cookie"] = cookieStr;
+        }
 
         const gfRes = await fetch(GOOGLE_FORM_POST_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Referer": GOOGLE_FORM_VIEW_URL,
-          },
+          headers: postHeaders,
           body: formParams.toString(),
+          redirect: "follow"
         });
         console.log("Google Forms relay status:", gfRes.status);
-        if (!gfRes.ok) {
-          console.error("Google Forms relay failed with status:", gfRes.status);
-        }
       } catch (gfError) {
         console.error("Google Forms relay error:", gfError);
       }
     }
 
-    // 3. AI analysis + Sanity save run in background after response is sent
+    // 2. AI analysis + Sanity save run in background after response is sent
     runBackgroundAnalysis(data, company, email).catch(err => 
       console.error("Background AI analysis error:", err)
     );
 
-    // 4. Return success to client immediately (~1-2 seconds)
+    // 3. Return success to client immediately (~1-2 seconds)
     return NextResponse.json({ success: true });
 
   } catch (error) {
