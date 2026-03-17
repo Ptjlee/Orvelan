@@ -78,7 +78,7 @@ export default function DiagnosticPage() {
 
     setIsSubmitting(true);
     
-    // 1. Build a human-readable object for the AI & Sanity
+    // 1. Build a human-readable object for the AI & Sanity (language-aware keys)
     const readableData: Record<string, string> = {};
     Object.entries(formData).forEach(([key, value]) => {
       const field = diagnosticData.find(d => d.id === key);
@@ -86,18 +86,27 @@ export default function DiagnosticPage() {
       readableData[question] = value;
     });
 
-    // 2. Build raw entry ID map for server-side Google Forms relay
+    // 2. Build French-keyed data for the Google Sheets webhook
+    //    The sheet headers come from the French Google Form, so keys must always be French
+    const frenchData: Record<string, string> = {};
+    Object.entries(formData).forEach(([key, value]) => {
+      const field = diagnosticData.find(d => d.id === key);
+      const question = field ? field.title : key;
+      frenchData[question] = value;
+    });
+
+    // 3. Build raw entry ID map (kept for potential future use)
     const rawEntryData: Record<string, string> = {};
     Object.entries(formData).forEach(([key, value]) => {
       rawEntryData[key] = value;
     });
 
     try {
-      // 3. Send everything to the server — it handles both AI analysis and Google Forms relay
+      // 4. Send everything to the server — it handles Sheets write, AI analysis and Sanity save
       await fetch("/api/diagnostic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ readableData, rawEntryData })
+        body: JSON.stringify({ readableData, frenchData, rawEntryData })
       });
       setSubmitted(true);
     } catch (err) {

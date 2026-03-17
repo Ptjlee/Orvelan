@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { sanityClient } from "@/lib/sanity";
+import { waitUntil } from "@vercel/functions";
 
 export const maxDuration = 60;
 
@@ -125,20 +126,19 @@ export async function POST(req: Request) {
     const company = companyKey ? data[companyKey] : "Unknown";
 
     // 1. Send to Google Sheets via Apps Script webhook (fast, ~1 second)
+    //    Uses frenchData (always French keys) to match the French-language sheet headers
+    const frenchData: Record<string, string> = body.frenchData ?? data;
     try {
-      await sendToGoogleSheets(data);
+      await sendToGoogleSheets(frenchData);
     } catch (sheetsErr) {
       console.error("Sheets webhook error:", sheetsErr);
     }
 
-    // 2. Run AI analysis + Sanity save (awaited — Vercel kills non-awaited background tasks)
-    try {
-      await runBackgroundAnalysis(data, company, email);
-    } catch (aiErr) {
-      console.error("AI analysis error:", aiErr);
-    }
+    // 2. AI analysis + Sanity save run in background via waitUntil.
+    //    Vercel keeps the function alive for this promise even after the response is sent.
+    waitUntil(runBackgroundAnalysis(data, company, email));
 
-    // 3. Return success — all data has been saved
+    // 3. Return success to client immediately (~1-2 seconds)
     return NextResponse.json({ success: true });
 
   } catch (error) {
