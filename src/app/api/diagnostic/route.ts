@@ -2,11 +2,40 @@ import { NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { sanityClient } from "@/lib/sanity";
 
-export const maxDuration = 60; // Allows Vercel hobby plan max, or pro plan limits
+export const maxDuration = 60;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse";
+const GOOGLE_FORM_VIEW_URL = "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/viewform";
+const GOOGLE_FORM_POST_URL = "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse";
+
+// Fetches the Google Form page first to extract required hidden session fields (fbzx, fvv, pageHistory, etc.)
+async function getFormHiddenFields(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(GOOGLE_FORM_VIEW_URL, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      }
+    });
+    const html = await res.text();
+
+    const fields: Record<string, string> = {};
+    // Extract all hidden fields except entry.* ones
+    const matches = html.matchAll(/name="([^"]+)"\s+value="([^"]*)"/g);
+    for (const m of matches) {
+      const name = m[1];
+      const value = m[2].replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+      if (!name.startsWith("entry.")) {
+        fields[name] = value;
+      }
+    }
+    return fields;
+  } catch (err) {
+    console.error("Failed to fetch Google Form hidden fields:", err);
+    return {};
+  }
+}
 
 // Runs AI analysis + saves to Sanity in the background (after response is sent to client)
 async function runBackgroundAnalysis(data: Record<string, string>, company: string, email: string) {
@@ -97,7 +126,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Support both old format (readableData directly) and new format ({ readableData, rawEntryData })
     const data = body.readableData ?? body;
     const rawEntryData: Record<string, string> | undefined = body.rawEntryData;
 
@@ -107,18 +135,36 @@ export async function POST(req: Request) {
     const email = emailKey ? data[emailKey] : "Unknown";
     const company = companyKey ? data[companyKey] : "Unknown";
 
-    // 1. Relay to Google Forms server-side immediately (fast, ~500ms)
+    // 1. Fetch Google Form page to get required hidden session fields (fbzx, fvv, pageHistory, etc.)
+    //    Without these, Google Forms records the timestamp but stores all field values as empty.
+    const hiddenFields = await getFormHiddenFields();
+    console.log("Fetched hidden fields:", Object.keys(hiddenFields));
+
+    // 2. Relay to Google Forms server-side with ALL required fields
     if (rawEntryData) {
       try {
         const formParams = new URLSearchParams();
+        // Add hidden fields first (fvv, pageHistory, fbzx, submissionTimestamp, etc.)
+        Object.entries(hiddenFields).forEach(([key, value]) => {
+          formParams.append(key, value);
+        });
+        // Add actual form answers
         Object.entries(rawEntryData).forEach(([key, value]) => {
           formParams.append(key, value);
         });
-        const gfRes = await fetch(GOOGLE_FORM_URL, {
+
+        console.log("Submitting to Google Forms with keys:", [...formParams.keys()].join(", "));
+
+        const gfRes = await fetch(GOOGLE_FORM_POST_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": GOOGLE_FORM_VIEW_URL,
+          },
           body: formParams.toString(),
         });
+        console.log("Google Forms relay status:", gfRes.status);
         if (!gfRes.ok) {
           console.error("Google Forms relay failed with status:", gfRes.status);
         }
@@ -127,14 +173,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. Fire AI analysis + Sanity save as a background task.
-    // Vercel keeps the serverless function alive until this promise resolves (up to maxDuration).
-    // The client receives the 200 response immediately — no more 10+ second wait.
+    // 3. AI analysis + Sanity save run in background after response is sent
     runBackgroundAnalysis(data, company, email).catch(err => 
       console.error("Background AI analysis error:", err)
     );
 
-    // 3. Return success to client immediately — user sees Thank You in ~1-2 seconds
+    // 4. Return success to client immediately (~1-2 seconds)
     return NextResponse.json({ success: true });
 
   } catch (error) {
