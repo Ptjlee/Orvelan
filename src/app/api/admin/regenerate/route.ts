@@ -51,20 +51,24 @@ Voici les réponses au diagnostic de l'entreprise suivante:
 - Données brutes (Questions et Réponses du dirigeant):
 ${contextStr}
 
-Votre tâche professionnelle consiste à fournir 3 éléments clés (qui doivent tous être fournis à la fois en Français et en Anglais):
-1. "summary": Un résumé exécutif (Executive Summary) concis et percutant.
-2. "key_findings": Une analyse approfondie des constats clés (Key Findings), beaucoup plus longue et détaillée que le résumé, identifiant les problèmes et fragilités profondes basés sur les réponses spécifiques.
-3. "action_plan": Un plan d'action immédiat et des recommandations stratégiques, étape par étape.
+Votre tâche professionnelle consiste à fournir 3 éléments clés, chacun en Français ET en Anglais:
+1. "summary": Un résumé exécutif (Executive Summary) concis et percutant — 2 à 3 paragraphes.
+2. "key_findings": Une analyse approfondie des constats clés — utilise une liste numérotée avec un titre court suivi d'une explication détaillée pour chaque constat.
+3. "action_plan": Un plan d'action immédiat — utilise une liste numérotée avec des étapes claires et actionnables.
 
-Important:
-Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés, sans aucun formatage markdown additionnel :
+FORMATAGE OBLIGATOIRE (appliqué identiquement en Français et en Anglais):
+- Utilise le markdown: listes numérotées (1. 2. 3.), gras (**texte**), sauts de ligne (\n)
+- Pour key_findings et action_plan: chaque point doit être sur sa propre ligne numérotée
+- Le formatage doit être identique en français et en anglais
+
+Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés:
 {
-  "summary_fr": "Résumé en français...",
-  "summary_en": "Summary in english...",
-  "key_findings_fr": "Analyse détaillée en français...",
-  "key_findings_en": "Detailed analysis in english...",
-  "action_plan_fr": "Plan d'action en français...",
-  "action_plan_en": "Action plan in english..."
+  "summary_fr": "Résumé en français avec paragraphes...",
+  "summary_en": "Summary in English with paragraphs...",
+  "key_findings_fr": "1. **Titre**: Explication...\n2. **Titre**: Explication...",
+  "key_findings_en": "1. **Title**: Explanation...\n2. **Title**: Explanation...",
+  "action_plan_fr": "1. **Étape**: Description...\n2. **Étape**: Description...",
+  "action_plan_en": "1. **Step**: Description...\n2. **Step**: Description..."
 }
 `;
 
