@@ -6,9 +6,15 @@ export const maxDuration = 60; // Allows Vercel hobby plan max, or pro plan limi
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
+const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse";
+
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
+    const body = await req.json();
+
+    // Support both old format (readableData directly) and new format ({ readableData, rawEntryData })
+    const data = body.readableData ?? body;
+    const rawEntryData: Record<string, string> | undefined = body.rawEntryData;
 
     // Dynamically identify the email and company name from the form questions
     // Since questions can be in French or English, we check keys for keywords.
@@ -108,6 +114,26 @@ Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés, sans aucun 
     } catch (dbError) {
       console.error("Sanity insert error:", dbError);
       return NextResponse.json({ error: "Failed to store in database" }, { status: 500 });
+    }
+
+    // 3. Relay to Google Forms server-side (no CORS restrictions here)
+    if (rawEntryData) {
+      try {
+        const formParams = new URLSearchParams();
+        Object.entries(rawEntryData).forEach(([key, value]) => {
+          formParams.append(key, value);
+        });
+        const gfRes = await fetch(GOOGLE_FORM_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formParams.toString(),
+        });
+        if (!gfRes.ok) {
+          console.error("Google Forms relay failed with status:", gfRes.status);
+        }
+      } catch (gfError) {
+        console.error("Google Forms relay error:", gfError);
+      }
     }
 
     return NextResponse.json({ success: true });

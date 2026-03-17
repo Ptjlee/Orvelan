@@ -78,7 +78,7 @@ export default function DiagnosticPage() {
 
     setIsSubmitting(true);
     
-    // 1. Build a human-readable object for the AI & Supabase
+    // 1. Build a human-readable object for the AI & Sanity
     const readableData: Record<string, string> = {};
     Object.entries(formData).forEach(([key, value]) => {
       const field = diagnosticData.find(d => d.id === key);
@@ -86,34 +86,22 @@ export default function DiagnosticPage() {
       readableData[question] = value;
     });
 
-    // 2. Build form data payload for Google Forms
-    const data = new URLSearchParams();
+    // 2. Build raw entry ID map for server-side Google Forms relay
+    const rawEntryData: Record<string, string> = {};
     Object.entries(formData).forEach(([key, value]) => {
-      data.append(key, value);
+      rawEntryData[key] = value;
     });
 
     try {
-      // 3 & 4. Send to internal backend (AI + Supabase) and Google Forms concurrently
-      await Promise.all([
-        fetch("/api/diagnostic", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(readableData)
-        }).catch(err => console.error("Internal API Error:", err)),
-        
-        fetch(
-          "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse",
-          {
-            method: "POST",
-            mode: "no-cors",
-            body: data,
-          }
-        )
-      ]);
+      // 3. Send everything to the server — it handles both AI analysis and Google Forms relay
+      await fetch("/api/diagnostic", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ readableData, rawEntryData })
+      });
       setSubmitted(true);
     } catch (err) {
       console.error(err);
-      // Even if error locally, no-cors blocks reading it, we assume success often
       setSubmitted(true);
     } finally {
       setIsSubmitting(false);
