@@ -124,19 +124,21 @@ export async function POST(req: Request) {
     const email = emailKey ? data[emailKey] : "Unknown";
     const company = companyKey ? data[companyKey] : "Unknown";
 
-    // 1. Send to Google Sheets via Apps Script webhook (reliable, no CSRF issues)
+    // 1. Send to Google Sheets via Apps Script webhook (fast, ~1 second)
     try {
       await sendToGoogleSheets(data);
     } catch (sheetsErr) {
       console.error("Sheets webhook error:", sheetsErr);
     }
 
-    // 2. AI analysis + Sanity save run in background after response is sent
-    runBackgroundAnalysis(data, company, email).catch(err => 
-      console.error("Background AI analysis error:", err)
-    );
+    // 2. Run AI analysis + Sanity save (awaited — Vercel kills non-awaited background tasks)
+    try {
+      await runBackgroundAnalysis(data, company, email);
+    } catch (aiErr) {
+      console.error("AI analysis error:", aiErr);
+    }
 
-    // 3. Return success to client immediately (~1-2 seconds)
+    // 3. Return success — all data has been saved
     return NextResponse.json({ success: true });
 
   } catch (error) {
