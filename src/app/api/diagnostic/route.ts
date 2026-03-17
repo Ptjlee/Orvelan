@@ -8,44 +8,29 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScqwkvqVhJUCz8tnyfflARXZaz4kJJ8vlOJDCqrcvN5S8eGQQ/formResponse";
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-
-    // Support both old format (readableData directly) and new format ({ readableData, rawEntryData })
-    const data = body.readableData ?? body;
-    const rawEntryData: Record<string, string> | undefined = body.rawEntryData;
-
-    // Dynamically identify the email and company name from the form questions
-    // Since questions can be in French or English, we check keys for keywords.
-    const emailKey = Object.keys(data).find(k => k.toLowerCase().includes("e-mail") || k.toLowerCase().includes("email"));
-    const companyKey = Object.keys(data).find(k => k.toLowerCase().includes("société") || k.toLowerCase().includes("company"));
-    
-    const email = emailKey ? data[emailKey] : "Unknown";
-    const company = companyKey ? data[companyKey] : "Unknown";
-
-    // 1. Ask Gemini to analyze the diagnostic data
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash",
-      generationConfig: { 
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: SchemaType.OBJECT,
-          properties: {
-            summary_fr: { type: SchemaType.STRING, description: "Résumé exécutif en français" },
-            summary_en: { type: SchemaType.STRING, description: "Executive summary in English" },
-            key_findings_fr: { type: SchemaType.STRING, description: "Constats clés détaillés en français" },
-            key_findings_en: { type: SchemaType.STRING, description: "Detailed key findings in English" },
-            action_plan_fr: { type: SchemaType.STRING, description: "Plan d'action en français" },
-            action_plan_en: { type: SchemaType.STRING, description: "Action plan in English" }
-          },
-          required: ["summary_fr", "summary_en", "key_findings_fr", "key_findings_en", "action_plan_fr", "action_plan_en"]
-        }
+// Runs AI analysis + saves to Sanity in the background (after response is sent to client)
+async function runBackgroundAnalysis(data: Record<string, string>, company: string, email: string) {
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash",
+    generationConfig: { 
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: SchemaType.OBJECT,
+        properties: {
+          summary_fr: { type: SchemaType.STRING, description: "Résumé exécutif en français" },
+          summary_en: { type: SchemaType.STRING, description: "Executive summary in English" },
+          key_findings_fr: { type: SchemaType.STRING, description: "Constats clés détaillés en français" },
+          key_findings_en: { type: SchemaType.STRING, description: "Detailed key findings in English" },
+          action_plan_fr: { type: SchemaType.STRING, description: "Plan d'action en français" },
+          action_plan_en: { type: SchemaType.STRING, description: "Action plan in English" }
+        },
+        required: ["summary_fr", "summary_en", "key_findings_fr", "key_findings_en", "action_plan_fr", "action_plan_en"]
       }
-    });
-    const contextStr = JSON.stringify(data, null, 2);
+    }
+  });
 
-    const prompt = `
+  const contextStr = JSON.stringify(data, null, 2);
+  const prompt = `
 Vous êtes un consultant expert en stratégie des organisations et performance d'entreprise. 
 Voici les réponses au diagnostic de l'entreprise suivante:
 - Entreprise: ${company}
@@ -70,53 +55,59 @@ Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés, sans aucun 
 }
 `;
 
-    const result = await model.generateContent(prompt);
-    let responseText = result.response.text();
+  const result = await model.generateContent(prompt);
+  let responseText = result.response.text();
+  responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+
+  let aiSummary = "{}";
+  let aiKeyFindings = "{}";
+  let aiActionPlan = "{}";
+
+  try {
+    const parsed = JSON.parse(responseText);
+    aiSummary = JSON.stringify({ fr: parsed.summary_fr, en: parsed.summary_en });
+    aiKeyFindings = JSON.stringify({ fr: parsed.key_findings_fr, en: parsed.key_findings_en });
+    aiActionPlan = JSON.stringify({ fr: parsed.action_plan_fr, en: parsed.action_plan_en });
+  } catch (err) {
+    console.error("Failed to parse Gemini JSON:", err);
+    aiSummary = JSON.stringify({ fr: responseText, en: responseText });
+    aiKeyFindings = JSON.stringify({ fr: "Erreur de formatage.", en: "Formatting error." });
+    aiActionPlan = JSON.stringify({ fr: "Erreur de formatage.", en: "Formatting error." });
+  }
+
+  const doc = {
+    _type: 'diagnostic',
+    company_name: company,
+    email: email,
+    raw_data: JSON.stringify(data),
+    ai_summary: aiSummary,
+    ai_key_findings: aiKeyFindings,
+    ai_action_plan: aiActionPlan,
+    created_at: new Date().toISOString()
+  };
+
+  if (process.env.SANITY_API_TOKEN) {
+    await sanityClient.create(doc);
+  } else {
+    console.warn("SANITY_API_TOKEN is missing. Skipping database insert.");
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+
+    // Support both old format (readableData directly) and new format ({ readableData, rawEntryData })
+    const data = body.readableData ?? body;
+    const rawEntryData: Record<string, string> | undefined = body.rawEntryData;
+
+    const emailKey = Object.keys(data).find(k => k.toLowerCase().includes("e-mail") || k.toLowerCase().includes("email"));
+    const companyKey = Object.keys(data).find(k => k.toLowerCase().includes("société") || k.toLowerCase().includes("company"));
     
-    // Clean up if Gemini accidentally returns ```json
-    responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-    
-    let aiSummary = "{}";
-    let aiKeyFindings = "{}";
-    let aiActionPlan = "{}";
+    const email = emailKey ? data[emailKey] : "Unknown";
+    const company = companyKey ? data[companyKey] : "Unknown";
 
-    try {
-      const parsed = JSON.parse(responseText);
-      aiSummary = JSON.stringify({ fr: parsed.summary_fr, en: parsed.summary_en });
-      aiKeyFindings = JSON.stringify({ fr: parsed.key_findings_fr, en: parsed.key_findings_en });
-      aiActionPlan = JSON.stringify({ fr: parsed.action_plan_fr, en: parsed.action_plan_en });
-    } catch (err) {
-      console.error("Failed to parse Gemini JSON:", err);
-      // Fallback
-      aiSummary = JSON.stringify({ fr: responseText, en: responseText });
-      aiKeyFindings = JSON.stringify({ fr: "Erreur de formatage.", en: "Formatting error." });
-      aiActionPlan = JSON.stringify({ fr: "Erreur de formatage.", en: "Formatting error." });
-    }
-
-    // 2. Insert into Sanity 'diagnostic' document type
-    const doc = {
-      _type: 'diagnostic',
-      company_name: company,
-      email: email,
-      raw_data: JSON.stringify(data), // We stringify to avoid dynamic key schema errors in Sanity
-      ai_summary: aiSummary,
-      ai_key_findings: aiKeyFindings,
-      ai_action_plan: aiActionPlan,
-      created_at: new Date().toISOString()
-    };
-
-    try {
-      if (process.env.SANITY_API_TOKEN) {
-        await sanityClient.create(doc);
-      } else {
-        console.warn("SANITY_API_TOKEN is missing. Skipping database insert.");
-      }
-    } catch (dbError) {
-      console.error("Sanity insert error:", dbError);
-      return NextResponse.json({ error: "Failed to store in database" }, { status: 500 });
-    }
-
-    // 3. Relay to Google Forms server-side (no CORS restrictions here)
+    // 1. Relay to Google Forms server-side immediately (fast, ~500ms)
     if (rawEntryData) {
       try {
         const formParams = new URLSearchParams();
@@ -136,6 +127,14 @@ Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés, sans aucun 
       }
     }
 
+    // 2. Fire AI analysis + Sanity save as a background task.
+    // Vercel keeps the serverless function alive until this promise resolves (up to maxDuration).
+    // The client receives the 200 response immediately — no more 10+ second wait.
+    runBackgroundAnalysis(data, company, email).catch(err => 
+      console.error("Background AI analysis error:", err)
+    );
+
+    // 3. Return success to client immediately — user sees Thank You in ~1-2 seconds
     return NextResponse.json({ success: true });
 
   } catch (error) {
