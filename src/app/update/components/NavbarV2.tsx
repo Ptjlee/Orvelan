@@ -9,13 +9,17 @@ import { motion, AnimatePresence } from "framer-motion";
 export function NavbarV2({
   lang,
   setLang,
+  alwaysCompact = false,
 }: {
   lang: "fr" | "en";
   setLang: (l: "fr" | "en") => void;
+  alwaysCompact?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const t = contentV2[lang].nav;
+  // On subpages with no hero, always use the compact scrolled style
+  const isCompact = alwaysCompact || scrolled;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -40,8 +44,8 @@ export function NavbarV2({
 
   return (
     <nav
-      className={`fixed top-0 w-full z-50 transition-all duration-500 ease-in-out ${
-        scrolled
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ease-in-out ${
+        isCompact
           ? "bg-white/95 backdrop-blur-sm shadow-sm py-4"
           : "bg-transparent py-7"
       }`}

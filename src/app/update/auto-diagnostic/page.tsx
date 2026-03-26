@@ -45,7 +45,7 @@ function AutoDiagnosticContent() {
 
   return (
     <main className="min-h-screen bg-white">
-      <NavbarV2 lang={lang} setLang={setLang} />
+      <NavbarV2 lang={lang} setLang={setLang} alwaysCompact />
       <div className="h-20" />
 
       {/* Page header */}
