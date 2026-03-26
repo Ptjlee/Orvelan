@@ -54,14 +54,7 @@ export function MissionV2({ lang }: { lang: "fr" | "en" }) {
       </div>
 
       {/* ── 3 PILLARS ───────────────────────────────────────── */}
-      <div className="bg-primary-midnight text-white py-24 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
-            backgroundSize: "40px 40px",
-          }}
-        />
+      <div className="bg-[#F5F1EB] py-24 relative overflow-hidden border-t border-primary-silver/20">
         <div className="max-w-[1400px] mx-auto px-6 md:px-12">
           <p className="text-primary-copper font-medium tracking-[0.2em] uppercase text-xs mb-16">
             {t.pillarsLabel}
@@ -74,12 +67,12 @@ export function MissionV2({ lang }: { lang: "fr" | "en" }) {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.15, duration: 0.6 }}
-                className="border-t border-primary-silver/20 pt-8"
+                className="border-t border-primary-silver/30 pt-8"
               >
-                <h3 className="font-serif text-3xl text-primary-ivory mb-4">
+                <h3 className="font-serif text-3xl text-primary-midnight mb-4">
                   {pillar.title}
                 </h3>
-                <p className="text-primary-silver/80 font-light leading-relaxed">
+                <p className="text-primary-charcoal font-light leading-relaxed">
                   {pillar.desc}
                 </p>
               </motion.div>

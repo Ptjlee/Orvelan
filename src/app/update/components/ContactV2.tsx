@@ -30,7 +30,7 @@ export function ContactV2({ lang }: { lang: "fr" | "en" }) {
           <span className="text-primary-copper font-medium tracking-[0.2em] uppercase text-xs mb-8 block">
             {t.label}
           </span>
-          <h2 className="text-6xl md:text-7xl font-serif text-primary-midnight mb-12 leading-[1.05] tracking-tight">
+          <h2 className="text-4xl md:text-5xl font-serif text-primary-midnight mb-12 leading-[1.05] tracking-tight">
             {t.title}
           </h2>
 
@@ -51,7 +51,7 @@ export function ContactV2({ lang }: { lang: "fr" | "en" }) {
             </p>
             <a
               href={`mailto:${t.directEmail}`}
-              className="text-xl md:text-2xl font-serif text-primary-midnight hover:text-primary-copper transition-colors"
+              className="text-base font-serif text-primary-midnight hover:text-primary-copper transition-colors"
             >
               {t.directEmail}
             </a>
@@ -68,14 +68,14 @@ export function ContactV2({ lang }: { lang: "fr" | "en" }) {
                   name="entry.54022395"
                   required
                   placeholder={lang === "fr" ? "Nom complet *" : "Full name *"}
-                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
+                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-base font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
                 />
                 <input
                   type="text"
                   name="entry.2020444487"
                   required
                   placeholder={lang === "fr" ? "Société *" : "Company *"}
-                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
+                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-base font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
                 />
               </div>
 
@@ -84,13 +84,13 @@ export function ContactV2({ lang }: { lang: "fr" | "en" }) {
                 name="entry.2147398256"
                 required
                 placeholder={lang === "fr" ? "Email / Téléphone *" : "Email / Phone *"}
-                className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
+                className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-base font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60"
               />
 
               <div className="flex flex-col md:flex-row gap-8">
                 <select
                   name="entry.1280987535"
-                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-silver/80 focus:text-primary-midnight focus:border-primary-midnight outline-none transition-colors cursor-pointer appearance-none"
+                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-base font-light text-primary-silver/80 focus:text-primary-midnight focus:border-primary-midnight outline-none transition-colors cursor-pointer appearance-none"
                 >
                   <option value="" disabled>
                     {lang === "fr" ? "Taille de la société" : "Company size"}
@@ -102,7 +102,7 @@ export function ContactV2({ lang }: { lang: "fr" | "en" }) {
                 </select>
                 <select
                   name="entry.1629878505"
-                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-silver/80 focus:text-primary-midnight focus:border-primary-midnight outline-none transition-colors cursor-pointer appearance-none"
+                  className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-base font-light text-primary-silver/80 focus:text-primary-midnight focus:border-primary-midnight outline-none transition-colors cursor-pointer appearance-none"
                 >
                   <option value="" disabled>
                     {lang === "fr" ? "Urgence" : "Urgency"}
@@ -121,17 +121,17 @@ export function ContactV2({ lang }: { lang: "fr" | "en" }) {
                     ? "En une phrase, qu'est ce qui vous amène ?"
                     : "In a phrase, what brings you here?"
                 }
-                className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-xl font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60 resize-none overflow-hidden"
+                className="w-full bg-transparent border-b border-primary-silver/40 py-4 text-base font-light text-primary-midnight focus:border-primary-midnight outline-none transition-colors placeholder:text-primary-silver/60 resize-none overflow-hidden"
               />
 
               <div className="flex justify-start mt-6">
                 <button
                   type="submit"
-                  className="group inline-flex items-center gap-6 font-serif text-3xl text-primary-midnight hover:text-primary-copper transition-colors"
+                  className="group inline-flex items-center gap-4 font-serif text-xl text-primary-midnight hover:text-primary-copper transition-colors"
                 >
                   {lang === "fr" ? "Envoyer" : "Submit"}
-                  <div className="w-16 h-16 rounded-full border border-primary-silver/40 flex items-center justify-center group-hover:border-primary-copper transition-colors">
-                    <ArrowUpRight className="w-8 h-8 font-light" />
+                  <div className="w-10 h-10 rounded-full border border-primary-silver/40 flex items-center justify-center group-hover:border-primary-copper transition-colors">
+                    <ArrowUpRight className="w-5 h-5 font-light" />
                   </div>
                 </button>
               </div>

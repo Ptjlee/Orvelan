@@ -10,24 +10,15 @@ export function SolutionsV2({ lang }: { lang: "fr" | "en" }) {
     <section id="solutions" className="py-32 bg-[#FAFAFA] border-t border-primary-silver/20">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12">
         {/* Header */}
-        <div className="flex flex-col md:flex-row gap-12 mb-14 items-end justify-between border-b border-primary-silver/20 pb-10">
-          <div>
-            <p className="text-primary-copper font-medium tracking-[0.2em] uppercase text-xs mb-5">
-              {t.label}
-            </p>
-            <h2 className="text-5xl md:text-6xl font-serif text-primary-midnight leading-none tracking-tight">
-              {t.title}
-            </h2>
-          </div>
-          <p className="max-w-sm text-primary-charcoal font-light leading-relaxed text-sm">
-            {t.intro}
+        <div className="mb-6 border-b border-primary-silver/20 pb-10">
+          <p className="text-primary-copper font-medium tracking-[0.2em] uppercase text-xs mb-5">
+            {t.label}
           </p>
-        </div>
-
-        {/* Diagnostic intro callout */}
-        <div className="border-l-2 border-primary-copper pl-6 mb-16 max-w-2xl">
-          <p className="text-primary-charcoal font-light leading-relaxed italic">
-            {t.diagIntro}
+          <h2 className="text-5xl md:text-6xl font-serif text-primary-midnight leading-none tracking-tight mb-6">
+            {t.title}
+          </h2>
+          <p className="max-w-xl text-primary-charcoal font-light leading-relaxed text-sm">
+            {t.intro}
           </p>
         </div>
 
@@ -85,8 +76,15 @@ export function SolutionsV2({ lang }: { lang: "fr" | "en" }) {
           ))}
         </div>
 
+        {/* Diagnostic intro callout — below the cards */}
+        <div className="border-l-2 border-primary-copper pl-6 mt-16 max-w-2xl">
+          <p className="text-primary-charcoal font-light leading-relaxed italic">
+            {t.diagIntro}
+          </p>
+        </div>
+
         {/* Principle note */}
-        <div className="mt-16 border-t border-primary-silver/20 pt-10 max-w-2xl">
+        <div className="mt-10 border-t border-primary-silver/20 pt-10 max-w-2xl">
           <p className="text-primary-charcoal/70 font-light text-sm leading-relaxed italic">
             {t.principle}
           </p>
