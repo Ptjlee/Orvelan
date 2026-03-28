@@ -7,10 +7,25 @@ import { ArrowUpRight } from "lucide-react";
 export function ContactV2({ lang }: { lang: "fr" | "en" }) {
   const t = contentV2[lang].contact;
   const [submitted, setSubmitted] = useState(false);
+  const [mountTime] = useState(Date.now());
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Anti-bot: Time-to-fill check (if submitted too fast)
+    if (Date.now() - mountTime < 4000) {
+      setSubmitted(true);
+      return;
+    }
+
     const formData = new FormData(e.currentTarget);
+    
+    // Anti-bot: Honeypot field check
+    if (formData.get("bot-field")) {
+      setSubmitted(true);
+      return;
+    }
+
     try {
       await fetch(
         "https://docs.google.com/forms/d/e/1FAIpQLSfnk2OJXsarwjjo-ajAtz3JK2Q964aRe6bkW_25nr9VuauTFw/formResponse",
@@ -62,6 +77,12 @@ export function ContactV2({ lang }: { lang: "fr" | "en" }) {
         <div className="xl:w-7/12">
           {!submitted ? (
             <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+              {/* Anti-spam Honeypot Field */}
+              <div className="absolute left-[-9999px] top-[-9999px]" aria-hidden="true">
+                <label htmlFor="bot-field">Ne pas remplir ce champ / Do not fill this field</label>
+                <input type="text" name="bot-field" id="bot-field" tabIndex={-1} autoComplete="off" />
+              </div>
+
               <div className="flex flex-col md:flex-row gap-8">
                 <input
                   type="text"
