@@ -1,12 +1,12 @@
 "use client";
 
-import { contentV2 } from "@/data/contentV2";
+import { content } from "@/data/content";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 
-export function MissionV2({ lang }: { lang: "fr" | "en" }) {
-  const t = contentV2[lang].mission;
+export function Mission({ lang }: { lang: "fr" | "en" }) {
+  const t = content[lang].mission;
   const [openValue, setOpenValue] = useState<number | null>(null);
 
   return (

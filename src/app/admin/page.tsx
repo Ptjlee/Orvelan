@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Navbar } from "@/components/Navbar";
-import { Lock, FileText, Activity } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Lock, FileText, Activity, MessageSquare, Send, CheckCircle, BarChart3, Users } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 const MarkdownRenderer = ({ content }: { content: string }) => (
@@ -22,8 +21,11 @@ const MarkdownRenderer = ({ content }: { content: string }) => (
   </ReactMarkdown>
 );
 
-const safeParseText = (text: string, lang: 'fr'|'en') => {
+const safeParseText = (text: any, lang: 'fr'|'en') => {
   if (!text) return "";
+  if (typeof text === 'object') {
+    return text[lang] || text.fr || text.en || "";
+  }
   try {
     const parsed = JSON.parse(text);
     if (parsed && typeof parsed === 'object' && ('fr' in parsed || 'en' in parsed)) {
@@ -39,104 +41,168 @@ export default function AdminPage() {
   const [lang, setLang] = useState<"fr" | "en">("fr");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
-  const [diagnostics, setDiagnostics] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [regenerating, setRegenerating] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  
+  const [activeMenu, setActiveMenu] = useState<"clients" | "dashboard">("clients");
   const [selectedEntry, setSelectedEntry] = useState<any | null>(null);
+  
+  // Chat state
+  const [messages, setMessages] = useState<any[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Hardcoded for beta MVP. Replace with NextAuth/Supabase Auth later.
-  const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "orvelan2026";
+  // Publish state
+  const [adminNotes, setAdminNotes] = useState("");
+  const [publishing, setPublishing] = useState(false);
+
+  const setAuthStorage = (pwd: string) => {
+    localStorage.setItem("orvelan_admin_pwd", pwd);
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem("orvelan_admin_pwd");
+    if (saved) {
+      setPassword(saved);
+      setIsAuthenticated(true);
+      fetchClients(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      fetchDiagnostics();
-    } else {
-      alert(lang === 'fr' ? "Mot de passe incorrect" : "Incorrect password");
-    }
+    setIsAuthenticated(true);
+    setAuthStorage(password);
+    fetchClients(password);
   };
 
-  const fetchDiagnostics = async () => {
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword("");
+    localStorage.removeItem("orvelan_admin_pwd");
+  };
+
+  const fetchClients = async (pwd: string) => {
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/diagnostics");
+      const response = await fetch("/api/admin/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pwd })
+      });
       const result = await response.json();
       
       if (result.success) {
-        const formattedData = result.data.map((d: any) => ({
-          ...d,
-          id: d._id,
-          raw_data: d.raw_data ? JSON.parse(d.raw_data) : {}
-        }));
-        setDiagnostics(formattedData || []);
+        const sorted = (result.data || []).sort((a: any, b: any) => {
+          if (a.unread_count > 0 && b.unread_count === 0) return -1;
+          if (b.unread_count > 0 && a.unread_count === 0) return 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        setClients(sorted);
       } else {
-        console.error("Failed API fetch", result.error);
-        alert(lang === 'fr' ? "Erreur de connexion Sanity" : "Sanity connection error");
+        handleLogout();
+        alert(lang === 'fr' ? "Erreur de connexion" : "Connection error");
       }
     } catch (err) {
-      console.error("Error fetching diagnostics:", err);
+      console.error("Error fetching clients:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegenerate = async () => {
-    if (!selectedEntry) return;
-    setRegenerating(true);
+  const loadMessages = async (userId: string) => {
+    if (userId.startsWith('sanity_')) return; // No chat natively for old legacy backups
+    setChatLoading(true);
     try {
-      const response = await fetch("/api/admin/regenerate", {
+      const response = await fetch("/api/admin/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedEntry.id })
+        body: JSON.stringify({ password, action: 'fetch', userId })
       });
       const result = await response.json();
-      
       if (result.success) {
-        alert(lang === 'fr' ? "Rapport d'analyse regénéré avec succès!" : "Analysis report successfully regenerated!");
-        fetchDiagnostics(); // refresh list
-      } else {
-        alert((lang === 'fr' ? "Erreur: " : "Error: ") + result.error);
+        setMessages(result.data || []);
       }
     } catch (err) {
       console.error(err);
-      alert(lang === 'fr' ? "Erreur lors de la regénération." : "Error during regeneration.");
     } finally {
-      setRegenerating(false);
+      setChatLoading(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedEntry) return;
+  const handleSelectClient = (client: any) => {
+    setSelectedEntry(client);
+    setAdminNotes(client.admin_notes || "");
+    setMessages([]);
+    loadMessages(client.user_id);
     
-    const confirmMessage = lang === 'fr' 
-      ? 'Êtes-vous sûr de vouloir supprimer cette entrée ? (Les données resteront dans Google Forms)' 
-      : 'Are you sure you want to delete this entry? (The raw data will remain in Google Forms)';
-      
-    if (!confirm(confirmMessage)) return;
+    setClients(prev => prev.map(c => c.user_id === client.user_id ? { ...c, unread_count: 0 } : c));
+  };
 
-    setDeleting(true);
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedEntry || selectedEntry.is_sanity) return;
+
+    const contentToSend = newMessage.trim();
+    setNewMessage("");
+
+    setMessages(prev => [...prev, {
+      id: Math.random().toString(),
+      sender_role: 'admin',
+      content: contentToSend,
+      created_at: new Date().toISOString(),
+      is_read: true
+    }]);
+
     try {
-      const response = await fetch("/api/admin/remove", {
+      await fetch("/api/admin/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: selectedEntry.id })
+        body: JSON.stringify({ 
+          password, 
+          action: 'send', 
+          userId: selectedEntry.user_id,
+          content: contentToSend
+        })
       });
-      const result = await response.json();
-      
-      if (result.success) {
-        alert(lang === 'fr' ? "Entrée supprimée avec succès!" : "Entry successfully deleted!");
-        setSelectedEntry(null);
-        fetchDiagnostics(); // refresh list
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!selectedEntry || selectedEntry.is_sanity) return;
+    setPublishing(true);
+    try {
+      const response = await fetch("/api/admin/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          password,
+          userId: selectedEntry.user_id,
+          adminNotes: adminNotes,
+          status: 'published'
+        })
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert(lang === 'fr' ? "Rapport publié avec succès dans l'espace client!" : "Report successfully published to client portal!");
+        // Update local state
+        setSelectedEntry({ ...selectedEntry, status: 'published', admin_notes: adminNotes, report_status: 'published' });
+        setClients(prev => prev.map(c => c.user_id === selectedEntry.user_id ? { ...c, report_status: 'published', admin_notes: adminNotes } : c));
       } else {
-        alert((lang === 'fr' ? "Erreur: " : "Error: ") + result.error);
+        alert(data.error || "Failed to publish");
       }
     } catch (err) {
       console.error(err);
-      alert(lang === 'fr' ? "Erreur lors de la suppression." : "Error during deletion.");
+      alert("Error publishing report");
     } finally {
-      setDeleting(false);
+      setPublishing(false);
     }
   };
 
@@ -170,130 +236,290 @@ export default function AdminPage() {
     );
   }
 
+  // Analytics Computation
+  const clientsWithUnread = clients.filter(c => c.unread_count > 0).length;
+  const publishedCount = clients.filter(c => c.report_status === 'published').length;
+  const pendingCount = clients.length - publishedCount;
+
   return (
-    <main className="min-h-screen bg-[#FAFAFA] flex flex-col">
-      <Navbar lang={lang} setLang={setLang} />
+    <main className="min-h-screen bg-[#FAFAFA] flex flex-col font-sans text-primary-charcoal">
       
-      <div className="flex-grow max-w-[1400px] w-full mx-auto px-6 md:px-12 pt-32 pb-24 flex flex-col md:flex-row gap-8">
-        
-        {/* Sidebar - List of submissions */}
-        <div className="md:w-1/3 bg-white p-6 border border-primary-silver/20 shadow-sm overflow-y-auto max-h-[80vh] flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-serif text-primary-midnight flex items-center gap-3">
-              <Activity size={20} className="text-primary-copper" />
-              {lang === 'fr' ? 'Diagnostics (IA)' : 'Diagnostics (AI)'}
-            </h2>
-            <button 
-              onClick={fetchDiagnostics}
-              disabled={loading}
-              className="text-xs uppercase tracking-widest text-primary-charcoal hover:text-primary-copper transition-colors"
-            >
-              {lang === 'fr' ? 'Actualiser' : 'Refresh'}
-            </button>
+      {/* Custom Admin Navbar */}
+      <header className="bg-primary-midnight text-white shadow-sm sticky top-0 z-50">
+        <div className="max-w-[1400px] mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <h1 className="font-serif text-xl tracking-widest uppercase">Orvelan Admin</h1>
+            <nav className="flex items-center gap-6 text-sm font-medium uppercase tracking-wider text-white/70">
+              <button 
+                onClick={() => setActiveMenu('clients')}
+                className={`hover:text-white transition-colors py-5 border-b-2 ${activeMenu === 'clients' ? 'border-primary-copper text-white' : 'border-transparent'}`}
+              >
+                {lang === 'fr' ? 'Diagnostic Clients' : 'Diagnostic Clients'}
+                {clientsWithUnread > 0 && <span className="ml-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{clientsWithUnread}</span>}
+              </button>
+              <button 
+                onClick={() => setActiveMenu('dashboard')}
+                className={`hover:text-white transition-colors py-5 border-b-2 ${activeMenu === 'dashboard' ? 'border-primary-copper text-white' : 'border-transparent'}`}
+              >
+                {lang === 'fr' ? 'Dashboard' : 'Dashboard'}
+              </button>
+            </nav>
           </div>
-          
-          {loading ? (
-             <p className="text-primary-silver py-4 text-center">{lang === 'fr' ? 'Chargement des données...' : 'Loading data...'}</p>
-          ) : diagnostics.length === 0 ? (
-             <p className="text-primary-silver py-4 text-center">{lang === 'fr' ? 'Aucun diagnostic trouvé.' : 'No diagnostics found.'}</p>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {diagnostics.map(diag => (
+          <div className="flex items-center gap-4">
+             <button onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')} className="text-sm font-bold text-white/50 hover:text-white">
+               {lang === 'fr' ? 'EN' : 'FR'}
+             </button>
+             <button onClick={handleLogout} className="text-xs uppercase tracking-widest bg-white/10 hover:bg-white/20 px-4 py-2 transition-colors">
+               Logout
+             </button>
+          </div>
+        </div>
+      </header>
+      
+      <div className="flex-grow max-w-[1400px] w-full mx-auto px-6 pt-10 pb-24">
+        
+        {activeMenu === 'dashboard' && (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-3xl font-serif text-primary-midnight">Vue d'ensemble</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+               <div className="bg-white p-6 border border-primary-silver/20 shadow-sm flex flex-col justify-center items-center">
+                 <Users className="w-8 h-8 text-primary-copper mb-3" />
+                 <p className="text-4xl font-serif text-primary-midnight">{clients.length}</p>
+                 <p className="text-xs uppercase tracking-widest text-primary-silver mt-1">Total Diagnostics</p>
+               </div>
+               <div className="bg-white p-6 border border-primary-silver/20 shadow-sm flex flex-col justify-center items-center">
+                 <Activity className="w-8 h-8 text-yellow-500 mb-3" />
+                 <p className="text-4xl font-serif text-primary-midnight">{pendingCount}</p>
+                 <p className="text-xs uppercase tracking-widest text-primary-silver mt-1">Non Publiés (Pending)</p>
+               </div>
+               <div className="bg-white p-6 border border-primary-silver/20 shadow-sm flex flex-col justify-center items-center">
+                 <CheckCircle className="w-8 h-8 text-emerald-500 mb-3" />
+                 <p className="text-4xl font-serif text-primary-midnight">{publishedCount}</p>
+                 <p className="text-xs uppercase tracking-widest text-primary-silver mt-1">Rapports Publiés</p>
+               </div>
+               <div className="bg-white p-6 border border-primary-silver/20 shadow-sm flex flex-col justify-center items-center">
+                 <MessageSquare className="w-8 h-8 text-blue-500 mb-3" />
+                 <p className="text-4xl font-serif text-primary-midnight">{clientsWithUnread}</p>
+                 <p className="text-xs uppercase tracking-widest text-primary-silver mt-1">Messages Non Lus</p>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {activeMenu === 'clients' && (
+          <div className="flex flex-col xl:flex-row gap-8 h-[calc(100vh-160px)]">
+            
+            {/* Sidebar - List of clients */}
+            <div className="xl:w-[350px] flex-shrink-0 bg-white border border-primary-silver/20 shadow-sm flex flex-col h-full overflow-hidden">
+              <div className="p-4 border-b border-primary-silver/20 flex justify-between items-center bg-[#FAFAFA]">
+                <h2 className="font-serif text-primary-midnight flex items-center gap-2">
+                  <FileText size={18} className="text-primary-copper" /> Clients
+                </h2>
                 <button 
-                  key={diag.id} 
-                  onClick={() => setSelectedEntry(diag)}
-                  className={`text-left p-4 border transition-colors ${selectedEntry?.id === diag.id ? 'border-primary-copper bg-primary-copper/5' : 'border-primary-silver/20 hover:border-primary-silver/50'}`}
+                  onClick={() => fetchClients(password)}
+                  disabled={loading}
+                  className="text-[10px] uppercase tracking-widest text-primary-charcoal hover:text-primary-copper transition-colors"
                 >
-                  <p className="font-medium text-primary-midnight">{diag.company_name}</p>
-                  <p className="text-xs text-primary-charcoal/70 mb-2">{diag.email}</p>
-                  <p className="text-[10px] uppercase tracking-widest text-primary-silver font-medium">
-                    {new Date(diag.created_at).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute:'2-digit' })}
-                  </p>
+                  Actualiser
                 </button>
-              ))}
+              </div>
+              
+              <div className="overflow-y-auto flex-grow flex flex-col">
+                {loading ? (
+                   <p className="text-primary-silver py-8 text-center text-sm">Chargement...</p>
+                ) : clients.length === 0 ? (
+                   <p className="text-primary-silver py-8 text-center text-sm">Aucun diagnostic.</p>
+                ) : (
+                  clients.map(client => (
+                    <button 
+                      key={client.user_id} 
+                      onClick={() => handleSelectClient(client)}
+                      className={`text-left relative p-4 border-b transition-colors flex flex-col ${selectedEntry?.user_id === client.user_id ? 'bg-primary-copper/5 border-l-2 border-l-primary-copper' : 'border-primary-silver/20 hover:bg-[#FAFAFA] border-l-2 border-l-transparent'}`}
+                    >
+                      {client.unread_count > 0 && (
+                        <span className="absolute top-4 right-4 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm" />
+                      )}
+                      
+                      <div className="flex items-center gap-2 mb-1">
+                        {client.report_status === 'published' ? (
+                          <CheckCircle className="w-3 h-3 text-emerald-500" />
+                        ) : (
+                          <Activity className="w-3 h-3 text-yellow-500" />
+                        )}
+                        <p className="font-medium text-primary-midnight truncate pr-6 text-sm">{client.form_company_name || client.company_name || "Entreprise"}</p>
+                      </div>
+                      
+                      <p className="text-xs text-primary-charcoal/70 truncate">{client.first_name || ''} {client.last_name || ''}</p>
+                      
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-[9px] uppercase tracking-widest text-primary-silver font-medium">
+                          {new Date(client.created_at).toLocaleDateString()}
+                        </span>
+                        {client.is_sanity && <span className="text-[9px] bg-primary-silver/10 px-1 py-0.5">Legacy</span>}
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Main Content - AI Analysis */}
-        <div className="md:w-2/3 bg-white p-10 border border-primary-silver/20 shadow-sm overflow-y-auto max-h-[80vh]">
-          {selectedEntry ? (
-            <div className="flex flex-col gap-10">
-              <div className="border-b border-primary-silver/20 pb-8">
-                <h1 className="text-4xl font-serif text-primary-midnight">{selectedEntry.company_name}</h1>
-                <p className="text-primary-charcoal">{selectedEntry.email}</p>
-                <div className="flex flex-wrap gap-4 mt-6 items-center">
-                  <a href={selectedEntry.email?.includes("@") ? `mailto:${selectedEntry.email}` : `tel:${selectedEntry.email}`} className="bg-primary-midnight text-white px-5 py-2.5 text-sm font-medium hover:bg-primary-copper transition-colors uppercase tracking-widest">
-                    {lang === 'fr' ? 'Contacter' : 'Contact'}
-                  </a>
-                  <button 
-                    onClick={handleRegenerate}
-                    disabled={regenerating || deleting}
-                    className="border border-primary-midnight text-primary-midnight px-5 py-2.5 text-sm font-medium hover:bg-primary-copper/5 transition-colors disabled:opacity-50 uppercase tracking-widest"
-                  >
-                    {regenerating ? (lang === 'fr' ? 'Analyse en cours...' : 'Analyzing...') : (lang === 'fr' ? 'Regénérer (IA)' : 'Regenerate (AI)')}
-                  </button>
-                  <button 
-                    onClick={handleDelete}
-                    disabled={regenerating || deleting}
-                    className="border border-red-500 text-red-500 px-5 py-2.5 text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50 uppercase tracking-widest"
-                  >
-                    {deleting ? (lang === 'fr' ? 'Suppression...' : 'Deleting...') : (lang === 'fr' ? 'Supprimer' : 'Delete')}
-                  </button>
-                </div>
-              </div>
+            {/* Main Content Pane */}
+            <div className="flex-grow bg-white border border-primary-silver/20 shadow-sm flex flex-col h-full overflow-hidden relative">
+              {selectedEntry ? (
+                <div className="flex-grow overflow-y-auto flex flex-col lg:flex-row">
+                  
+                  {/* Left content panel (AI Results & Publishing) */}
+                  <div className="flex-grow p-8 lg:border-r border-primary-silver/20">
+                     <div className="pb-6 border-b border-primary-silver/20 mb-8 flex justify-between items-end">
+                       <div>
+                         <div className="flex items-center gap-3 mb-2">
+                            <span className={`text-[10px] uppercase font-bold tracking-widest px-2 py-1 ${selectedEntry.report_status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                              {selectedEntry.report_status === 'published' ? 'PUBLIÉ' : 'BROUILLON / EN COURS'}
+                            </span>
+                         </div>
+                         <h1 className="text-3xl font-serif text-primary-midnight">{selectedEntry.form_company_name || selectedEntry.company_name}</h1>
+                         <p className="text-primary-charcoal mt-1 text-sm">{selectedEntry.email}</p>
+                       </div>
+                       {!selectedEntry.is_sanity ? (
+                         <button 
+                           onClick={handlePublish}
+                           disabled={publishing}
+                           className="bg-primary-midnight text-white px-6 py-3 text-xs tracking-widest uppercase hover:bg-primary-copper transition-colors font-medium flex items-center gap-2"
+                         >
+                           {publishing ? 'Publication...' : (selectedEntry.report_status === 'published' ? 'Mettre à jour' : 'Sauvegarder & Publier')}
+                         </button>
+                       ) : (
+                         <button 
+                           disabled
+                           className="bg-primary-silver/20 text-primary-silver px-6 py-3 text-xs tracking-widest uppercase font-medium cursor-not-allowed"
+                         >
+                           Non Publiable (Legacy)
+                         </button>
+                       )}
+                     </div>
 
-               <div>
-                 <h3 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-4">
-                   {lang === 'fr' ? 'Résumé Exécutif (IA)' : 'Executive Summary (AI)'}
-                 </h3>
-                 <div className="text-lg text-primary-charcoal leading-relaxed font-light">
-                   <MarkdownRenderer content={safeParseText(selectedEntry.ai_summary, lang)} />
-                 </div>
-              </div>
+                     {/* Admin Notes Box */}
+                     {!selectedEntry.is_sanity ? (
+                       <div className="mb-12 bg-[#FAFAFA] p-6 border border-primary-silver/20 opacity-100">
+                         <h3 className="text-sm uppercase tracking-widest font-medium text-primary-midnight mb-2">Commentaires / Rapport Final</h3>
+                         <p className="text-xs text-primary-charcoal/60 mb-4 tracking-wide">Rédigez le texte que le client verra sur son espace. Modifiez ou intégrez les données de l'IA.</p>
+                         <textarea 
+                           className="w-full bg-white border border-primary-silver/40 p-4 min-h-[200px] text-sm focus:outline-none focus:border-primary-midnight font-light shadow-inner"
+                           placeholder="Écrivez le retour final pour le client ici..."
+                           value={adminNotes}
+                           onChange={e => setAdminNotes(e.target.value)}
+                         />
+                       </div>
+                     ) : (
+                       <div className="mb-12 bg-[#FAFAFA] p-6 border border-primary-silver/20 opacity-60">
+                         <h3 className="text-sm uppercase tracking-widest font-medium text-primary-midnight mb-2">Commentaires / Rapport Final</h3>
+                         <p className="text-xs text-red-500 mb-4 tracking-wide font-medium">⚠️ Ce dossier est un test "Legacy" (généré avant l'ajout des comptes utilisateurs). Vous ne pouvez pas ajouter de rapport ni interagir directement avec ce dossier.</p>
+                         <textarea 
+                           disabled
+                           className="w-full bg-primary-silver/5 border border-primary-silver/20 p-4 min-h-[100px] text-sm cursor-not-allowed"
+                           value="Non disponible pour les anciens tests. Testez en soumettant un nouveau diagnostic avec un compte."
+                         />
+                       </div>
+                     )}
 
-              {selectedEntry.ai_key_findings && (
-              <div className="bg-primary-copper/5 p-8 border border-primary-copper/20">
-                 <h3 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-4">
-                   {lang === 'fr' ? 'Constats Clés (IA)' : 'Key Findings (AI)'}
-                 </h3>
-                 <div className="text-lg text-primary-charcoal leading-relaxed font-light">
-                   <MarkdownRenderer content={safeParseText(selectedEntry.ai_key_findings, lang)} />
-                 </div>
-              </div>
-              )}
+                     {/* AI Findings */}
+                     {selectedEntry.ai_analysis && (
+                       <div className="flex flex-col gap-8 opacity-80">
+                         <div className="flex items-center gap-2 border-b border-primary-silver/20 pb-2">
+                           <BarChart3 className="w-4 h-4 text-primary-copper" />
+                           <h3 className="text-xs uppercase tracking-widest font-bold text-primary-charcoal">Brouillon IA (Non visible par le client)</h3>
+                         </div>
+                         
+                         <div>
+                           <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-3">Résumé Exécutif</h4>
+                           <div className="text-sm text-primary-charcoal/80 bg-primary-copper/5 p-5 border border-primary-copper/10">
+                             <MarkdownRenderer content={safeParseText(selectedEntry.ai_analysis.summary_fr || selectedEntry.ai_analysis.summary, lang)} />
+                           </div>
+                        </div>
+                        <div>
+                           <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-3">Constats Clés</h4>
+                           <div className="text-sm text-primary-charcoal/80 bg-primary-copper/5 p-5 border border-primary-copper/10">
+                             <MarkdownRenderer content={safeParseText(selectedEntry.ai_analysis.key_findings_fr || selectedEntry.ai_analysis.key_findings, lang)} />
+                           </div>
+                        </div>
+                        <div>
+                           <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-3">Plan d'Action</h4>
+                           <div className="text-sm text-primary-charcoal/80 bg-primary-copper/5 p-5 border border-primary-copper/10">
+                             <MarkdownRenderer content={safeParseText(selectedEntry.ai_analysis.action_plan_fr || selectedEntry.ai_analysis.action_plan, lang)} />
+                           </div>
+                        </div>
+                       </div>
+                     )}
+                  </div>
 
-              <div className="bg-primary-copper/5 p-8 border border-primary-copper/20">
-                 <h3 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-6">
-                   {lang === 'fr' ? 'Plan d\'Action (IA)' : 'Action Plan (AI)'}
-                 </h3>
-                 <div className="text-lg text-primary-charcoal leading-relaxed font-light">
-                   <MarkdownRenderer content={safeParseText(selectedEntry.ai_action_plan, lang)} />
-                 </div>
-              </div>
+                  {/* Right Panel: Chat Interface */}
+                  {!selectedEntry.is_sanity && (
+                    <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col bg-[#FAFAFA]">
+                      <div className="p-4 border-b border-primary-silver/20 bg-white">
+                        <h3 className="text-xs font-bold tracking-widest uppercase text-primary-midnight flex items-center gap-2">
+                          <MessageSquare className="w-4 h-4 text-primary-copper" /> 
+                          Messagerie Client
+                        </h3>
+                      </div>
+                      
+                      <div className="flex-grow p-4 overflow-y-auto space-y-4 max-h-[500px] lg:max-h-none">
+                         {chatLoading ? (
+                           <div className="h-full flex items-center justify-center text-xs text-primary-silver">Chargement...</div>
+                         ) : messages.length === 0 ? (
+                           <div className="h-full flex flex-col items-center justify-center text-primary-silver/60">
+                             <p className="text-xs font-light text-center">Aucun message</p>
+                           </div>
+                         ) : (
+                           messages.map((msg: any) => {
+                             const isAdmin = msg.sender_role === 'admin';
+                             return (
+                               <div key={msg.id} className={`flex flex-col max-w-[90%] ${isAdmin ? 'ml-auto' : 'mr-auto'}`}>
+                                  <div className={`p-3 text-xs leading-relaxed rounded-sm ${
+                                    isAdmin 
+                                    ? 'bg-primary-midnight text-white' 
+                                    : 'bg-white border border-primary-silver/30 text-primary-charcoal'
+                                  }`}>
+                                    {msg.content}
+                                  </div>
+                               </div>
+                             );
+                           })
+                         )}
+                         <div ref={messagesEndRef} />
+                      </div>
 
-              <div>
-                <h3 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-4 border-b border-primary-silver/20 pb-2">
-                  {lang === 'fr' ? 'Données Brutes' : 'Raw Data'}
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm mt-4">
-                  {selectedEntry.raw_data && Object.keys(selectedEntry.raw_data).map((question, idx) => (
-                    <div key={idx} className="mb-4">
-                      <p className="font-medium text-primary-midnight mb-1">{question}</p>
-                      <p className="text-primary-charcoal/80 font-light">{selectedEntry.raw_data[question]}</p>
+                      <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-primary-silver/20">
+                          <div className="flex gap-2 relative">
+                            <input
+                              type="text"
+                              value={newMessage}
+                              onChange={(e) => setNewMessage(e.target.value)}
+                              placeholder="Message..."
+                              className="w-full bg-[#FAFAFA] border border-primary-silver/30 pl-3 pr-10 py-2.5 text-xs focus:outline-none focus:border-primary-midnight"
+                            />
+                            <button
+                              type="submit"
+                              disabled={!newMessage.trim() || chatLoading}
+                              className="absolute right-0 top-0 bottom-0 text-primary-midnight hover:text-primary-copper transition-colors px-3 disabled:opacity-30"
+                            >
+                              <Send className="w-4 h-4" />
+                            </button>
+                          </div>
+                      </form>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  )}
 
+                </div>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-primary-silver/50">
+                   <Activity size={48} className="mb-4 opacity-30" strokeWidth={1} />
+                   <p className="text-lg font-light tracking-wide">{lang === 'fr' ? 'Sélectionnez un dossier client' : 'Select a client file'}</p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-primary-silver/50 min-h-[400px]">
-               <FileText size={64} className="mb-4 opacity-50" />
-               <p className="text-xl font-light">{lang === 'fr' ? 'Sélectionnez un diagnostic' : 'Select a diagnostic entry'}</p>
-            </div>
-          )}
-        </div>
+
+          </div>
+        )}
 
       </div>
     </main>

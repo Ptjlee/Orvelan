@@ -2,14 +2,14 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { NavbarV2 } from "./update/components/NavbarV2";
-import { HeroV2 } from "./update/components/HeroV2";
-import { MissionV2 } from "./update/components/MissionV2";
-import { BesoinsV2 } from "./update/components/BesoinsV2";
-import { SolutionsV2 } from "./update/components/SolutionsV2";
-import { AboutV2 } from "./update/components/AboutV2";
-import { ContactV2 } from "./update/components/ContactV2";
-import { FooterV2 } from "./update/components/FooterV2";
+import { Navbar } from "../components/Navbar";
+import { Hero } from "../components/Hero";
+import { Mission } from "../components/Mission";
+import { Besoins } from "../components/Besoins";
+import { Solutions } from "../components/Solutions";
+import { About } from "../components/About";
+import { Contact } from "../components/Contact";
+import { Footer } from "../components/Footer";
 
 function HomeContent() {
   const searchParams = useSearchParams();
@@ -25,18 +25,18 @@ function HomeContent() {
 
   return (
     <main className="min-h-screen bg-white">
-      <NavbarV2 lang={lang} setLang={setLang} />
+      <Navbar lang={lang} setLang={setLang} />
 
       {/* Spacer for fixed navbar */}
       <div className="h-20" />
 
-      <HeroV2 lang={lang} />
-      <MissionV2 lang={lang} />
-      <BesoinsV2 lang={lang} />
-      <SolutionsV2 lang={lang} />
-      <AboutV2 lang={lang} />
-      <ContactV2 lang={lang} />
-      <FooterV2 lang={lang} />
+      <Hero lang={lang} />
+      <Mission lang={lang} />
+      <Besoins lang={lang} />
+      <Solutions lang={lang} />
+      <About lang={lang} />
+      <Contact lang={lang} />
+      <Footer lang={lang} />
     </main>
   );
 }

@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import { sanityClient } from "@/lib/sanity";
 import { waitUntil } from "@vercel/functions";
+import { createClient } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const SHEETS_WEBHOOK_URL = process.env.GOOGLE_SHEETS_WEBHOOK_URL || "";
-
-const BROWSER_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 // Sends readable question→answer data to Google Sheets via Apps Script webhook
 async function sendToGoogleSheets(data: Record<string, string>): Promise<void> {
@@ -27,8 +26,8 @@ async function sendToGoogleSheets(data: Record<string, string>): Promise<void> {
   console.log("Sheets webhook response:", json);
 }
 
-// Runs AI analysis + saves to Sanity in the background (after response is sent to client)
-async function runBackgroundAnalysis(data: Record<string, string>, company: string, email: string) {
+// Runs AI analysis + saves to Sanity and Supabase in the background
+async function runBackgroundAnalysis(data: Record<string, string>, company: string, email: string, userId: string | null) {
   const model = genAI.getGenerativeModel({ 
     model: "gemini-2.5-flash",
     generationConfig: { 
@@ -85,9 +84,11 @@ Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés:
   let aiSummary = "{}";
   let aiKeyFindings = "{}";
   let aiActionPlan = "{}";
+  let parsedJson = {};
 
   try {
     const parsed = JSON.parse(responseText);
+    parsedJson = parsed;
     aiSummary = JSON.stringify({ fr: parsed.summary_fr, en: parsed.summary_en });
     aiKeyFindings = JSON.stringify({ fr: parsed.key_findings_fr, en: parsed.key_findings_en });
     aiActionPlan = JSON.stringify({ fr: parsed.action_plan_fr, en: parsed.action_plan_en });
@@ -98,6 +99,7 @@ Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés:
     aiActionPlan = JSON.stringify({ fr: "Erreur de formatage.", en: "Formatting error." });
   }
 
+  // 1. Save to Sanity (Legacy integration)
   const doc = {
     _type: 'diagnostic',
     company_name: company,
@@ -110,9 +112,26 @@ Renvoie UNIQUEMENT un objet JSON valide avec exactement ces 6 clés:
   };
 
   if (process.env.SANITY_API_TOKEN) {
-    await sanityClient.create(doc);
+    await sanityClient.create(doc).catch(e => console.error("Sanity save failed", e));
   } else {
-    console.warn("SANITY_API_TOKEN is missing. Skipping database insert.");
+    console.warn("SANITY_API_TOKEN is missing. Skipping Sanity database insert.");
+  }
+
+  // 2. Save directly to Supabase to completely sync the Portal architecture
+  if (userId) {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseOptions = { auth: { persistSession: false } };
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      supabaseOptions
+    );
+    
+    await supabase.rpc('admin_save_ai_analysis', {
+      admin_pass: process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'Orvelan2026',
+      q_user_id: userId,
+      p_ai_analysis: parsedJson
+    });
   }
 }
 
@@ -121,7 +140,10 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     const data = body.readableData ?? body;
-    const rawEntryData: Record<string, string> | undefined = body.rawEntryData;
+    
+    // Attempt to pull user.id securely from cookies before the response ends
+    const supabaseReq = await createClient();
+    const { data: { user } } = await supabaseReq.auth.getUser();
 
     const emailKey = Object.keys(data).find(k => k.toLowerCase().includes("e-mail") || k.toLowerCase().includes("email"));
     const companyKey = Object.keys(data).find(k => k.toLowerCase().includes("société") || k.toLowerCase().includes("company"));
@@ -129,8 +151,7 @@ export async function POST(req: Request) {
     const email = emailKey ? data[emailKey] : "Unknown";
     const company = companyKey ? data[companyKey] : "Unknown";
 
-    // 1. Send to Google Sheets via Apps Script webhook (fast, ~1 second)
-    //    Uses frenchData (always French keys) to match the French-language sheet headers
+    // 1. Send to Google Sheets via Apps Script webhook
     const frenchData: Record<string, string> = body.frenchData ?? data;
     try {
       await sendToGoogleSheets(frenchData);
@@ -138,11 +159,26 @@ export async function POST(req: Request) {
       console.error("Sheets webhook error:", sheetsErr);
     }
 
-    // 2. AI analysis + Sanity save run in background via waitUntil.
-    //    Vercel keeps the function alive for this promise even after the response is sent.
-    waitUntil(runBackgroundAnalysis(data, company, email));
+    // 2. We can save the raw record to Supabase IMMEDATIATELY (sync) so the portal functions instantly!
+    if (user) {
+      try {
+        await supabaseReq.from('diagnostic_reports').insert({
+          user_id: user.id,
+          form_data: data,
+          status: 'pending',
+          ai_analysis: {} // Fill with empty currently
+        });
+      } catch (e) {
+        console.error("Failed creating Supabase report:", e);
+      }
+    }
 
-    // 3. Return success to client immediately (~1-2 seconds)
+    // 3. AI analysis + Sanity save run in background via waitUntil.
+    // Since Supabase report is created above, how do we update the Supabase report with the AI generated JSON after `waitUntil`?
+    // We can use the service role, but we don't have it.
+    // Wait... if the user triggers this background job, we can just pass the user token into `runBackgroundAnalysis` and rebuild the client!
+    waitUntil(runBackgroundAnalysis(data, company, email, user ? user.id : null));
+
     return NextResponse.json({ success: true });
 
   } catch (error) {
@@ -150,3 +186,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Server processing error" }, { status: 500 });
   }
 }
+

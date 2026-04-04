@@ -1,12 +1,12 @@
 "use client";
 
-import { contentV2 } from "@/data/contentV2";
+import { content } from "@/data/content";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
 
-export function BesoinsV2({ lang }: { lang: "fr" | "en" }) {
-  const t = contentV2[lang].besoins;
+export function Besoins({ lang }: { lang: "fr" | "en" }) {
+  const t = content[lang].besoins;
   const [open, setOpen] = useState<number | null>(null);
 
   return (
@@ -67,7 +67,7 @@ export function BesoinsV2({ lang }: { lang: "fr" | "en" }) {
                       ))}
                       <div className="mt-8">
                         <a
-                          href={item.ctaHref}
+                          href={item.ctaHref.startsWith("#") ? `/?lang=${lang}${item.ctaHref}` : `${item.ctaHref}?lang=${lang}`}
                           className="inline-flex items-center gap-3 text-sm tracking-widest uppercase font-medium text-primary-midnight hover:text-primary-copper transition-colors"
                         >
                           <span className="w-8 h-8 rounded-full border border-primary-silver flex items-center justify-center hover:border-primary-copper transition-colors">

@@ -1,10 +1,10 @@
 "use client";
 
-import { contentV2 } from "@/data/contentV2";
+import { content } from "@/data/content";
 import { motion } from "framer-motion";
 
-export function SolutionsV2({ lang }: { lang: "fr" | "en" }) {
-  const t = contentV2[lang].solutions;
+export function Solutions({ lang }: { lang: "fr" | "en" }) {
+  const t = content[lang].solutions;
 
   return (
     <section id="solutions" className="py-32 bg-[#FAFAFA] border-t border-primary-silver/20">

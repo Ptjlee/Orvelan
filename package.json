@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3050",
+    "dev": "next dev --port 3040",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -11,6 +11,8 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@sanity/client": "^7.17.0",
+    "@supabase/ssr": "^0.10.0",
+    "@supabase/supabase-js": "^2.101.1",
     "@vercel/functions": "^3.4.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.36.0",
@@ -19,6 +21,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
+    "resend": "^6.10.0",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
