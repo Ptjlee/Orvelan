@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
 export async function login(formData: FormData) {
@@ -41,8 +42,11 @@ export async function signup(formData: FormData) {
     return { error: 'Email and password are required' }
   }
 
-  // Look up the URL origin to safely route the magic link callback in dev and prod
-  const originUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3040'
+  // Generate origin URL dynamically from Headers to prevent localhost leaking into production emails
+  const headersList = await headers()
+  const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3040'
+  const protocol = host.includes('localhost') ? 'http' : 'https'
+  const originUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`
 
   // Passing the name in user_metadata allows us to store user info seamlessly
   const { error } = await supabase.auth.signUp({
@@ -80,7 +84,10 @@ export async function resetPassword(formData: FormData) {
     return { error: 'Email is required' };
   }
 
-  const originUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3040';
+  const headersList = await headers();
+  const host = headersList.get('x-forwarded-host') || headersList.get('host') || 'localhost:3040';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const originUrl = process.env.NEXT_PUBLIC_SITE_URL || `${protocol}://${host}`;
   
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${originUrl}/auth/callback?next=/update-password%3Flang%3D${lang}`,
