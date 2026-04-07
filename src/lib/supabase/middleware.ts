@@ -33,6 +33,14 @@ export async function updateSession(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
+    // Rescue Supabase edge-cases where email links drop to root domain without /auth/callback path
+    if (request.nextUrl.pathname === '/' && request.nextUrl.searchParams.has('code')) {
+      const authUrl = request.nextUrl.clone()
+      authUrl.pathname = '/auth/callback'
+      // It keeps the search params (like code) intact automatically because it clones nextUrl
+      return NextResponse.redirect(authUrl)
+    }
+
     // Protect the diagnostic and portal routes
     if (!user) {
       if (request.nextUrl.pathname.startsWith('/diagnostic')) {
