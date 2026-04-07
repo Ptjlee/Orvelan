@@ -4,6 +4,8 @@ import DiagnosticSurvey from './DiagnosticSurvey';
 import ProfileSettings from '../ProfileSettings';
 import { signout } from '@/app/(auth)/actions';
 
+export const dynamic = 'force-dynamic';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default async function PortalDiagnosticPage(props: { searchParams: SearchParams }) {

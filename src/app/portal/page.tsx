@@ -4,6 +4,8 @@ import { Lock, FileText, CheckCircle, Clock, LogOut } from 'lucide-react';
 import ChatUI from './ChatUI';
 import { signout } from '@/app/(auth)/actions';
 
+export const dynamic = 'force-dynamic';
+
 const t = {
   fr: {
     logout: 'Déconnexion',
