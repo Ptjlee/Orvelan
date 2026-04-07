@@ -4,9 +4,35 @@ import { cookies } from 'next/headers'
 export async function createClient() {
   const cookieStore = await cookies()
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("Missing Supabase environment variables!");
+    // Return a dummy client so the application renders a visual error rather than a 500 crash page.
+    return {
+      auth: {
+        getUser: async () => ({ data: { user: null }, error: new Error('Missing DB Credentials') }),
+        signOut: async () => ({ error: null }),
+        signInWithPassword: async () => ({ data: null, error: new Error('Missing Env Vars') }),
+        signUp: async () => ({ data: null, error: new Error('Missing Env Vars') }),
+        resetPasswordForEmail: async () => ({ data: null, error: new Error('Missing Env Vars') }),
+        updateUser: async () => ({ data: null, error: new Error('Missing Env Vars') }),
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: async () => ({ data: null, error: new Error('Missing Env Vars') }),
+            order: async () => ({ data: null, error: new Error('Missing Env Vars') })
+          })
+        })
+      })
+    } as any;
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
