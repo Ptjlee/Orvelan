@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Lock, FileText, Activity, MessageSquare, Send, CheckCircle, BarChart3, Users } from "lucide-react";
+import { Lock, FileText, Activity, MessageSquare, Send, CheckCircle, BarChart3, Users, X, MessageCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 const MarkdownRenderer = ({ content }: { content: string }) => (
@@ -52,6 +52,7 @@ export default function AdminPage() {
   const [chatLoading, setChatLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Publish state
   const [adminNotes, setAdminNotes] = useState("");
@@ -168,7 +169,7 @@ ${act}`;
   };
 
   const handleSelectClient = (client: any) => {
-    setSelectedEntry(client);
+    setSelectedEntry({ ...client, unread_count: 0 });
     
     if (client.admin_notes) {
       setAdminNotes(client.admin_notes);
@@ -415,10 +416,10 @@ ${act}`;
             {/* Main Content Pane */}
             <div className="flex-grow bg-white border border-primary-silver/20 shadow-sm flex flex-col h-full overflow-hidden relative">
               {selectedEntry ? (
-                <div className="flex-grow overflow-y-auto flex flex-col lg:flex-row">
+                <div className="flex-grow flex relative overflow-hidden">
                   
                   {/* Left content panel (AI Results & Publishing) */}
-                  <div className="flex-grow p-8 lg:border-r border-primary-silver/20">
+                  <div className="flex-grow p-8 overflow-y-auto h-full relative">
                      <div className="pb-6 border-b border-primary-silver/20 mb-8 flex justify-between items-end">
                        <div>
                          <div className="flex items-center gap-3 mb-2">
@@ -429,22 +430,35 @@ ${act}`;
                          <h1 className="text-3xl font-serif text-primary-midnight">{selectedEntry.form_company_name || selectedEntry.company_name}</h1>
                          <p className="text-primary-charcoal mt-1 text-sm">{selectedEntry.email}</p>
                        </div>
-                       {!selectedEntry.is_sanity ? (
-                         <button 
-                           onClick={handlePublish}
-                           disabled={publishing}
-                           className="bg-primary-midnight text-white px-6 py-3 text-xs tracking-widest uppercase hover:bg-primary-copper transition-colors font-medium flex items-center gap-2"
-                         >
-                           {publishing ? 'Publication...' : (selectedEntry.report_status === 'published' ? 'Mettre à jour' : 'Sauvegarder & Publier')}
-                         </button>
-                       ) : (
-                         <button 
-                           disabled
-                           className="bg-primary-silver/20 text-primary-silver px-6 py-3 text-xs tracking-widest uppercase font-medium cursor-not-allowed"
-                         >
-                           Non Publiable (Legacy)
-                         </button>
-                       )}
+                       <div className="flex items-center gap-4">
+                         {!selectedEntry.is_sanity && (
+                           <button
+                             onClick={() => setIsChatOpen(!isChatOpen)}
+                             className="bg-white border border-primary-silver/40 text-primary-midnight px-6 py-3 text-xs tracking-widest uppercase hover:border-primary-copper transition-colors font-medium flex items-center gap-2 relative shadow-sm"
+                           >
+                             <MessageCircle size={14} /> Messagerie
+                             {selectedEntry.unread_count > 0 && (
+                               <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 rounded-full animate-bounce shadow-sm" />
+                             )}
+                           </button>
+                         )}
+                         {!selectedEntry.is_sanity ? (
+                           <button 
+                             onClick={handlePublish}
+                             disabled={publishing}
+                             className="bg-primary-midnight text-white px-6 py-3 text-xs tracking-widest uppercase hover:bg-primary-copper transition-colors font-medium flex items-center gap-2 shadow-sm"
+                           >
+                             {publishing ? 'Publication...' : (selectedEntry.report_status === 'published' ? 'Mettre à jour' : 'Sauvegarder & Publier')}
+                           </button>
+                         ) : (
+                           <button 
+                             disabled
+                             className="bg-primary-silver/20 text-primary-silver px-6 py-3 text-xs tracking-widest uppercase font-medium cursor-not-allowed"
+                           >
+                             Non Publiable (Legacy)
+                           </button>
+                         )}
+                       </div>
                      </div>
 
                      {/* Admin Notes Box */}
@@ -489,7 +503,7 @@ ${act}`;
 
                      {/* AI Findings */}
                      {selectedEntry.ai_analysis && (
-                       <div className="flex flex-col gap-8 opacity-80">
+                       <div className="flex flex-col gap-8 opacity-80 pb-12">
                          <div className="flex items-center gap-2 border-b border-primary-silver/20 pb-2">
                            <BarChart3 className="w-4 h-4 text-primary-copper" />
                            <h3 className="text-xs uppercase tracking-widest font-bold text-primary-charcoal">Brouillon IA (Non visible par le client)</h3>
@@ -517,17 +531,20 @@ ${act}`;
                      )}
                   </div>
 
-                  {/* Right Panel: Chat Interface */}
+                  {/* Right Panel: Chat Interface (Absolute Slide Overlay) */}
                   {!selectedEntry.is_sanity && (
-                    <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col bg-[#FAFAFA]">
-                      <div className="p-4 border-b border-primary-silver/20 bg-white">
+                    <div className={`absolute top-0 right-0 bottom-0 w-[400px] max-w-full z-20 flex flex-col bg-[#FAFAFA] border-l border-primary-silver/30 tracking-wide transition-transform duration-300 ease-in-out shadow-[rgba(0,0,0,0.1)_0px_4px_24px] ${isChatOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                      <div className="p-4 border-b border-primary-silver/20 bg-white flex items-center justify-between">
                         <h3 className="text-xs font-bold tracking-widest uppercase text-primary-midnight flex items-center gap-2">
                           <MessageSquare className="w-4 h-4 text-primary-copper" /> 
                           Messagerie Client
                         </h3>
+                        <button onClick={() => setIsChatOpen(false)} className="text-primary-silver hover:text-primary-copper transition-colors p-1">
+                          <X size={16} />
+                        </button>
                       </div>
                       
-                      <div ref={chatScrollRef} className="flex-grow p-4 overflow-y-auto space-y-4 max-h-[500px] lg:max-h-none">
+                      <div ref={chatScrollRef} className="flex-grow p-4 overflow-y-auto space-y-4">
                          {chatLoading ? (
                            <div className="h-full flex items-center justify-center text-xs text-primary-silver">Chargement...</div>
                          ) : messages.length === 0 ? (
@@ -559,7 +576,7 @@ ${act}`;
                               value={newMessage}
                               onChange={(e) => setNewMessage(e.target.value)}
                               placeholder="Message..."
-                              className="w-full bg-[#FAFAFA] border border-primary-silver/30 pl-3 pr-10 py-2.5 text-xs focus:outline-none focus:border-primary-midnight"
+                              className="w-full bg-[#FAFAFA] border border-primary-silver/30 pl-3 pr-10 py-3 text-xs focus:outline-none focus:border-primary-midnight focus:bg-white transition-colors"
                             />
                             <button
                               type="submit"
@@ -571,6 +588,14 @@ ${act}`;
                           </div>
                       </form>
                     </div>
+                  )}
+
+                  {/* Optional Backdrop to capture clicks outside chat */}
+                  {isChatOpen && (
+                     <div 
+                       className="absolute inset-0 bg-primary-midnight/5 z-10 transition-opacity duration-300" 
+                       onClick={() => setIsChatOpen(false)} 
+                     />
                   )}
 
                 </div>
