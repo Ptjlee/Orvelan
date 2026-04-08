@@ -135,14 +135,47 @@ export default function AdminPage() {
     }
   };
 
+  const generateMarkdownTemplate = (ai: any, currentLang: 'fr'|'en') => {
+    if (!ai) return "";
+    const sum = safeParseText(ai.summary_fr || ai.summary, currentLang);
+    const find = safeParseText(ai.key_findings_fr || ai.key_findings, currentLang);
+    const act = safeParseText(ai.action_plan_fr || ai.action_plan, currentLang);
+    
+    return `### Résumé Exécutif
+${sum}
+
+### Constats Clés
+${find}
+
+### Plan d'Action
+${act}`;
+  };
+
   const handleSelectClient = (client: any) => {
     setSelectedEntry(client);
-    setAdminNotes(client.admin_notes || "");
+    
+    if (client.admin_notes) {
+      setAdminNotes(client.admin_notes);
+    } else if (client.ai_analysis && !client.is_sanity) {
+      setAdminNotes(generateMarkdownTemplate(client.ai_analysis, lang));
+    } else {
+      setAdminNotes("");
+    }
+
     setMessages([]);
     loadMessages(client.user_id);
     
     setClients(prev => prev.map(c => c.user_id === client.user_id ? { ...c, unread_count: 0 } : c));
   };
+
+  // Poll Chat Messages every 5 seconds for the active client
+  useEffect(() => {
+    if (!selectedEntry || selectedEntry.is_sanity) return;
+    const interval = setInterval(() => {
+      loadMessages(selectedEntry.user_id);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [selectedEntry, password]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();

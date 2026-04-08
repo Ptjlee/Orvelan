@@ -57,3 +57,17 @@ export async function sendMessage(formData: FormData) {
   revalidatePath('/portal');
   return { success: true };
 }
+
+export async function getMessages() {
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData?.user) return [];
+
+  const { data } = await supabase
+    .from('portal_messages')
+    .select('*')
+    .eq('user_id', userData.user.id)
+    .order('created_at', { ascending: true });
+
+  return data || [];
+}

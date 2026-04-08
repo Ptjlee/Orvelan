@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { sendMessage } from './actions';
+import { sendMessage, getMessages } from './actions';
 import { Send, Loader2, User, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -40,6 +40,19 @@ export default function ChatUI({ initialMessages, lang = 'fr' }: { initialMessag
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!loading) {
+        const newData = await getMessages();
+        setMessages(prev => {
+          if (newData.length !== prev.length) return newData;
+          return prev;
+        });
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [loading]);
 
   async function handleSend(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
