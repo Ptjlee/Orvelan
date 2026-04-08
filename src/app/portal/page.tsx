@@ -4,6 +4,24 @@ import { Lock, FileText, CheckCircle, Clock } from 'lucide-react';
 import ChatUI from './ChatUI';
 import { signout } from '@/app/(auth)/actions';
 import PrintButton from '@/components/PrintButton';
+import ReactMarkdown from 'react-markdown';
+
+const MarkdownRenderer = ({ content }: { content: string }) => (
+  <ReactMarkdown
+    components={{
+      strong: ({node, ...props}) => <span className="font-semibold text-primary-midnight" {...props} />,
+      ol: ({node, ...props}) => <ol className="list-decimal pl-5 space-y-2 mb-4" {...props} />,
+      ul: ({node, ...props}) => <ul className="list-disc pl-5 space-y-2 mb-4" {...props} />,
+      li: ({node, ...props}) => <li className="text-primary-charcoal marker:text-primary-copper" {...props} />,
+      p: ({node, ...props}) => <p className="mb-4 last:mb-0 whitespace-pre-wrap" {...props} />,
+      h1: ({node, ...props}) => <h1 className="text-2xl font-serif text-primary-midnight mb-4 mt-6" {...props} />,
+      h2: ({node, ...props}) => <h2 className="text-xl font-serif text-primary-midnight mb-3 mt-5" {...props} />,
+      h3: ({node, ...props}) => <h3 className="text-lg font-serif text-primary-midnight mb-2 mt-4" {...props} />,
+    }}
+  >
+    {content}
+  </ReactMarkdown>
+);
 
 export const dynamic = 'force-dynamic';
 
@@ -136,7 +154,7 @@ export default async function PortalPage(props: { searchParams: SearchParams }) 
               
               <div className="prose prose-stone max-w-none text-primary-charcoal font-light leading-relaxed">
                 {report.admin_notes ? (
-                  <div dangerouslySetInnerHTML={{ __html: report.admin_notes.replace(/\\n/g, '<br/>') }} />
+                  <MarkdownRenderer content={report.admin_notes} />
                 ) : (
                   <p>{current.readyDesc}</p>
                 )}
