@@ -55,7 +55,7 @@ export default function AdminPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Publish state
-  const [adminNotes, setAdminNotes] = useState("");
+  const [reportData, setReportData] = useState({ summary: "", findings: "", actionPlan: ""});
   const [publishing, setPublishing] = useState(false);
 
   const setAuthStorage = (pwd: string) => {
@@ -152,31 +152,36 @@ export default function AdminPage() {
     }
   };
 
-  const generateMarkdownTemplate = (ai: any, currentLang: 'fr'|'en') => {
-    if (!ai) return "";
-    const sum = safeParseText(ai.summary_fr || ai.summary, currentLang);
-    const find = safeParseText(ai.key_findings_fr || ai.key_findings, currentLang);
-    const act = safeParseText(ai.action_plan_fr || ai.action_plan, currentLang);
-    
-    return `### Résumé Exécutif
-${sum}
+  const parseExistingNotes = (notes: string) => {
+    if (!notes) return { summary: "", findings: "", actionPlan: "" };
+    // Try to extract blocks. If a user saved it freely, put the whole thing in summary.
+    const hasStructure = notes.includes("### Résumé Exécutif") || notes.includes("### Executive Summary");
+    if (!hasStructure) return { summary: notes, findings: "", actionPlan: "" };
 
-### Constats Clés
-${find}
+    const sumRegex = /### (?:Résumé Exécutif|Executive Summary)\n([\s\S]*?)(?:###|$)/;
+    const findRegex = /### (?:Constats Clés|Key Findings)\n([\s\S]*?)(?:###|$)/;
+    const actRegex = /### (?:Plan d'Action|Action Plan)\n([\s\S]*?)(?:###|$)/;
 
-### Plan d'Action
-${act}`;
+    return {
+      summary: notes.match(sumRegex)?.[1]?.trim() || "",
+      findings: notes.match(findRegex)?.[1]?.trim() || "",
+      actionPlan: notes.match(actRegex)?.[1]?.trim() || ""
+    };
   };
 
   const handleSelectClient = (client: any) => {
     setSelectedEntry({ ...client, unread_count: 0 });
     
     if (client.admin_notes) {
-      setAdminNotes(client.admin_notes);
+      setReportData(parseExistingNotes(client.admin_notes));
     } else if (client.ai_analysis && !client.is_sanity) {
-      setAdminNotes(generateMarkdownTemplate(client.ai_analysis, lang));
+      setReportData({
+        summary: safeParseText(client.ai_analysis.summary_fr || client.ai_analysis.summary, lang),
+        findings: safeParseText(client.ai_analysis.key_findings_fr || client.ai_analysis.key_findings, lang),
+        actionPlan: safeParseText(client.ai_analysis.action_plan_fr || client.ai_analysis.action_plan, lang)
+      });
     } else {
-      setAdminNotes("");
+      setReportData({ summary: "", findings: "", actionPlan: "" });
     }
 
     setMessages([]);
@@ -229,13 +234,15 @@ ${act}`;
     if (!selectedEntry || selectedEntry.is_sanity) return;
     setPublishing(true);
     try {
+      const compiledMarkdown = `### ${lang === 'fr' ? 'Résumé Exécutif' : 'Executive Summary'}\n${reportData.summary}\n\n### ${lang === 'fr' ? 'Constats Clés' : 'Key Findings'}\n${reportData.findings}\n\n### ${lang === 'fr' ? 'Plan d\'Action' : 'Action Plan'}\n${reportData.actionPlan}`;
+
       const response = await fetch("/api/admin/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           password,
           userId: selectedEntry.user_id,
-          adminNotes: adminNotes,
+          adminNotes: compiledMarkdown,
           status: 'published'
         })
       });
@@ -243,8 +250,8 @@ ${act}`;
       if (data.success) {
         alert(lang === 'fr' ? "Rapport publié avec succès dans l'espace client!" : "Report successfully published to client portal!");
         // Update local state
-        setSelectedEntry({ ...selectedEntry, status: 'published', admin_notes: adminNotes, report_status: 'published' });
-        setClients(prev => prev.map(c => c.user_id === selectedEntry.user_id ? { ...c, report_status: 'published', admin_notes: adminNotes } : c));
+        setSelectedEntry({ ...selectedEntry, status: 'published', admin_notes: compiledMarkdown, report_status: 'published' });
+        setClients(prev => prev.map(c => c.user_id === selectedEntry.user_id ? { ...c, report_status: 'published', admin_notes: compiledMarkdown } : c));
       } else {
         alert(data.error || "Failed to publish");
       }
@@ -461,33 +468,76 @@ ${act}`;
                        </div>
                      </div>
 
-                     {/* Admin Notes Box */}
+                     {/* Detailed Editable Report Sections */}
                      {!selectedEntry.is_sanity ? (
-                       <div className="mb-12 bg-[#FAFAFA] p-6 border border-primary-silver/20 opacity-100">
-                         <div className="flex justify-between items-start mb-4">
+                       <div className="flex flex-col gap-8 opacity-100 pb-12">
+                         <div className="flex justify-between items-center border-b border-primary-silver/20 pb-4 mb-2">
                            <div>
-                             <h3 className="text-sm uppercase tracking-widest font-medium text-primary-midnight mb-2">Commentaires / Rapport Final</h3>
-                             <p className="text-xs text-primary-charcoal/60 tracking-wide">Rédigez le texte que le client verra sur son espace. Modifiez ou intégrez les données de l'IA.</p>
+                             <h3 className="text-sm uppercase tracking-widest font-medium text-primary-midnight mb-1 flex items-center gap-2">
+                               <FileText className="w-4 h-4 text-primary-copper" />
+                               Rapport Client (Éditable)
+                             </h3>
+                             <p className="text-xs text-primary-charcoal/60 tracking-wide">
+                               Ce qui suit sera publié dans l'espace du client. Modifiez directement le brouillon.
+                             </p>
                            </div>
+                           
                            {selectedEntry.ai_analysis && (
                              <button
                                onClick={() => {
-                                 if (window.confirm("Êtes-vous sûr de vouloir remplacer le contenu par le brouillon IA?")) {
-                                   setAdminNotes(generateMarkdownTemplate(selectedEntry.ai_analysis, lang));
+                                 if (window.confirm(lang === 'fr' ? "Êtes-vous sûr de vouloir remplacer le contenu par le brouillon IA ?" : "Are you sure you want to replace contents with the AI draft?")) {
+                                   setReportData({
+                                     summary: safeParseText(selectedEntry.ai_analysis.summary_fr || selectedEntry.ai_analysis.summary, lang),
+                                     findings: safeParseText(selectedEntry.ai_analysis.key_findings_fr || selectedEntry.ai_analysis.key_findings, lang),
+                                     actionPlan: safeParseText(selectedEntry.ai_analysis.action_plan_fr || selectedEntry.ai_analysis.action_plan, lang)
+                                   });
                                  }
                                }}
-                               className="text-[10px] uppercase font-bold tracking-widest border border-primary-copper/30 text-primary-copper px-3 py-1.5 hover:bg-primary-copper hover:text-white transition-colors bg-white/50"
+                               className="text-[10px] uppercase font-bold tracking-widest border border-primary-copper/30 text-primary-copper px-4 py-2 hover:bg-primary-copper hover:text-white transition-colors bg-white/50 shadow-sm"
                              >
-                               Recharger Brouillon IA
+                               {lang === 'fr' ? 'Recharger Brouillon IA' : 'Reload AI Draft'}
                              </button>
                            )}
                          </div>
-                         <textarea 
-                           className="w-full bg-white border border-primary-silver/40 p-4 min-h-[200px] text-sm focus:outline-none focus:border-primary-midnight font-light shadow-inner"
-                           placeholder="Écrivez le retour final pour le client ici..."
-                           value={adminNotes}
-                           onChange={e => setAdminNotes(e.target.value)}
-                         />
+                         
+                         <div>
+                           <div className="flex justify-between items-center mb-3">
+                             <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-midnight">
+                               {lang === 'fr' ? 'Résumé Exécutif' : 'Executive Summary'}
+                             </h4>
+                           </div>
+                           <textarea
+                             className="w-full bg-[#FAFAFA] border border-primary-silver/30 p-5 min-h-[150px] text-sm focus:outline-none focus:border-primary-copper font-light transition-colors resize-y shadow-inner leading-relaxed focus:bg-white"
+                             value={reportData.summary}
+                             onChange={e => setReportData({...reportData, summary: e.target.value})}
+                           />
+                        </div>
+                        {/* Constats */}
+                        <div>
+                           <div className="flex justify-between items-center mb-3">
+                             <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-midnight">
+                               {lang === 'fr' ? 'Constats Clés' : 'Key Findings'}
+                             </h4>
+                           </div>
+                           <textarea
+                             className="w-full bg-[#FAFAFA] border border-primary-silver/30 p-5 min-h-[250px] text-sm focus:outline-none focus:border-primary-copper font-light transition-colors resize-y shadow-inner leading-relaxed focus:bg-white"
+                             value={reportData.findings}
+                             onChange={e => setReportData({...reportData, findings: e.target.value})}
+                           />
+                        </div>
+                        {/* Plan d'action */}
+                        <div>
+                           <div className="flex justify-between items-center mb-3">
+                             <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-midnight">
+                               {lang === 'fr' ? 'Plan d\'Action' : 'Action Plan'}
+                             </h4>
+                           </div>
+                           <textarea
+                             className="w-full bg-[#FAFAFA] border border-primary-silver/30 p-5 min-h-[250px] text-sm focus:outline-none focus:border-primary-copper font-light transition-colors resize-y shadow-inner leading-relaxed focus:bg-white"
+                             value={reportData.actionPlan}
+                             onChange={e => setReportData({...reportData, actionPlan: e.target.value})}
+                           />
+                        </div>
                        </div>
                      ) : (
                        <div className="mb-12 bg-[#FAFAFA] p-6 border border-primary-silver/20 opacity-60">
@@ -498,35 +548,6 @@ ${act}`;
                            className="w-full bg-primary-silver/5 border border-primary-silver/20 p-4 min-h-[100px] text-sm cursor-not-allowed"
                            value="Non disponible pour les anciens tests. Testez en soumettant un nouveau diagnostic avec un compte."
                          />
-                       </div>
-                     )}
-
-                     {/* AI Findings */}
-                     {selectedEntry.ai_analysis && (
-                       <div className="flex flex-col gap-8 opacity-80 pb-12">
-                         <div className="flex items-center gap-2 border-b border-primary-silver/20 pb-2">
-                           <BarChart3 className="w-4 h-4 text-primary-copper" />
-                           <h3 className="text-xs uppercase tracking-widest font-bold text-primary-charcoal">Brouillon IA (Non visible par le client)</h3>
-                         </div>
-                         
-                         <div>
-                           <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-3">Résumé Exécutif</h4>
-                           <div className="text-sm text-primary-charcoal/80 bg-primary-copper/5 p-5 border border-primary-copper/10">
-                             <MarkdownRenderer content={safeParseText(selectedEntry.ai_analysis.summary_fr || selectedEntry.ai_analysis.summary, lang)} />
-                           </div>
-                        </div>
-                        <div>
-                           <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-3">Constats Clés</h4>
-                           <div className="text-sm text-primary-charcoal/80 bg-primary-copper/5 p-5 border border-primary-copper/10">
-                             <MarkdownRenderer content={safeParseText(selectedEntry.ai_analysis.key_findings_fr || selectedEntry.ai_analysis.key_findings, lang)} />
-                           </div>
-                        </div>
-                        <div>
-                           <h4 className="text-xs uppercase tracking-[0.2em] font-medium text-primary-copper mb-3">Plan d'Action</h4>
-                           <div className="text-sm text-primary-charcoal/80 bg-primary-copper/5 p-5 border border-primary-copper/10">
-                             <MarkdownRenderer content={safeParseText(selectedEntry.ai_analysis.action_plan_fr || selectedEntry.ai_analysis.action_plan, lang)} />
-                           </div>
-                        </div>
                        </div>
                      )}
                   </div>
