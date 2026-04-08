@@ -55,7 +55,13 @@ export default function AdminPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Publish state
-  const [reportData, setReportData] = useState({ summary: "", findings: "", actionPlan: ""});
+  interface ReportData {
+    summary: string;
+    findings: string;
+    actionPlan: string;
+    customBlocks: { id: string; title: string; content: string }[];
+  }
+  const [reportData, setReportData] = useState<ReportData>({ summary: "", findings: "", actionPlan: "", customBlocks: [] });
   const [publishing, setPublishing] = useState(false);
 
   const setAuthStorage = (pwd: string) => {
@@ -153,20 +159,38 @@ export default function AdminPage() {
   };
 
   const parseExistingNotes = (notes: string) => {
-    if (!notes) return { summary: "", findings: "", actionPlan: "" };
-    // Try to extract blocks. If a user saved it freely, put the whole thing in summary.
+    if (!notes) return { summary: "", findings: "", actionPlan: "", customBlocks: [] };
     const hasStructure = notes.includes("### Résumé Exécutif") || notes.includes("### Executive Summary");
-    if (!hasStructure) return { summary: notes, findings: "", actionPlan: "" };
+    if (!hasStructure) return { summary: notes, findings: "", actionPlan: "", customBlocks: [] };
 
-    const sumRegex = /### (?:Résumé Exécutif|Executive Summary)\n([\s\S]*?)(?:###|$)/;
-    const findRegex = /### (?:Constats Clés|Key Findings)\n([\s\S]*?)(?:###|$)/;
-    const actRegex = /### (?:Plan d'Action|Action Plan)\n([\s\S]*?)(?:###|$)/;
+    const blocksRaw = notes.split("### ").filter(b => b.trim() !== "");
+    let summary = "";
+    let findings = "";
+    let actionPlan = "";
+    const customBlocks: {id: string; title: string; content: string}[] = [];
 
-    return {
-      summary: notes.match(sumRegex)?.[1]?.trim() || "",
-      findings: notes.match(findRegex)?.[1]?.trim() || "",
-      actionPlan: notes.match(actRegex)?.[1]?.trim() || ""
-    };
+    blocksRaw.forEach(block => {
+       const newlineIdx = block.indexOf("\n");
+       if (newlineIdx === -1) {
+         // Fallback if there's no newline
+         customBlocks.push({ id: Math.random().toString(), title: block.trim(), content: "" });
+         return;
+       }
+       const title = block.substring(0, newlineIdx).trim();
+       const content = block.substring(newlineIdx + 1).trim();
+
+       if (title === "Résumé Exécutif" || title === "Executive Summary") {
+         summary = content;
+       } else if (title === "Constats Clés" || title === "Key Findings") {
+         findings = content;
+       } else if (title === "Plan d'Action" || title === "Action Plan") {
+         actionPlan = content;
+       } else {
+         customBlocks.push({ id: Math.random().toString(), title, content });
+       }
+    });
+
+    return { summary, findings, actionPlan, customBlocks };
   };
 
   const handleSelectClient = (client: any) => {
@@ -178,10 +202,11 @@ export default function AdminPage() {
       setReportData({
         summary: safeParseText(client.ai_analysis.summary_fr || client.ai_analysis.summary, lang),
         findings: safeParseText(client.ai_analysis.key_findings_fr || client.ai_analysis.key_findings, lang),
-        actionPlan: safeParseText(client.ai_analysis.action_plan_fr || client.ai_analysis.action_plan, lang)
+        actionPlan: safeParseText(client.ai_analysis.action_plan_fr || client.ai_analysis.action_plan, lang),
+        customBlocks: []
       });
     } else {
-      setReportData({ summary: "", findings: "", actionPlan: "" });
+      setReportData({ summary: "", findings: "", actionPlan: "", customBlocks: [] });
     }
 
     setMessages([]);
@@ -234,7 +259,13 @@ export default function AdminPage() {
     if (!selectedEntry || selectedEntry.is_sanity) return;
     setPublishing(true);
     try {
-      const compiledMarkdown = `### ${lang === 'fr' ? 'Résumé Exécutif' : 'Executive Summary'}\n${reportData.summary}\n\n### ${lang === 'fr' ? 'Constats Clés' : 'Key Findings'}\n${reportData.findings}\n\n### ${lang === 'fr' ? 'Plan d\'Action' : 'Action Plan'}\n${reportData.actionPlan}`;
+      let compiledMarkdown = `### ${lang === 'fr' ? 'Résumé Exécutif' : 'Executive Summary'}\n${reportData.summary}\n\n### ${lang === 'fr' ? 'Constats Clés' : 'Key Findings'}\n${reportData.findings}\n\n### ${lang === 'fr' ? 'Plan d\'Action' : 'Action Plan'}\n${reportData.actionPlan}`;
+      
+      reportData.customBlocks.forEach(block => {
+        if (block.title.trim() || block.content.trim()) {
+          compiledMarkdown += `\n\n### ${block.title.trim() || 'Additional Notes'}\n${block.content}`;
+        }
+      });
 
       const response = await fetch("/api/admin/report", {
         method: "POST",
@@ -489,7 +520,8 @@ export default function AdminPage() {
                                    setReportData({
                                      summary: safeParseText(selectedEntry.ai_analysis.summary_fr || selectedEntry.ai_analysis.summary, lang),
                                      findings: safeParseText(selectedEntry.ai_analysis.key_findings_fr || selectedEntry.ai_analysis.key_findings, lang),
-                                     actionPlan: safeParseText(selectedEntry.ai_analysis.action_plan_fr || selectedEntry.ai_analysis.action_plan, lang)
+                                     actionPlan: safeParseText(selectedEntry.ai_analysis.action_plan_fr || selectedEntry.ai_analysis.action_plan, lang),
+                                     customBlocks: []
                                    });
                                  }
                                }}
@@ -537,6 +569,59 @@ export default function AdminPage() {
                              value={reportData.actionPlan}
                              onChange={e => setReportData({...reportData, actionPlan: e.target.value})}
                            />
+                        </div>
+
+                        {/* Custom Blocks */}
+                        {reportData.customBlocks.map((block, index) => (
+                          <div key={block.id} className="relative group animate-in slide-in-from-top-2 fade-in duration-300">
+                             <div className="flex justify-between items-center mb-3">
+                               <input 
+                                 type="text"
+                                 className="text-xs uppercase tracking-[0.2em] font-bold text-primary-midnight bg-transparent border-b border-transparent hover:border-primary-silver/40 focus:border-primary-copper focus:outline-none px-1 py-0.5 w-[300px]"
+                                 value={block.title}
+                                 onChange={(e) => {
+                                   const next = [...reportData.customBlocks];
+                                   next[index].title = e.target.value;
+                                   setReportData({ ...reportData, customBlocks: next });
+                                 }}
+                                 placeholder={lang === 'fr' ? 'TITRE DE LA SECTION...' : 'SECTION TITLE...'}
+                               />
+                               <button 
+                                 onClick={() => {
+                                   if(window.confirm(lang === 'fr' ? "Supprimer cette section ?" : "Delete this section?")) {
+                                     const next = [...reportData.customBlocks];
+                                     next.splice(index, 1);
+                                     setReportData({ ...reportData, customBlocks: next });
+                                   }
+                                 }}
+                                 className="text-[10px] text-red-500 hover:text-red-700 uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                               >
+                                 {lang === 'fr' ? 'Supprimer' : 'Delete'}
+                               </button>
+                             </div>
+                             <textarea
+                               className="w-full bg-[#FAFAFA] border border-primary-silver/30 p-5 min-h-[150px] text-sm focus:outline-none focus:border-primary-copper font-light transition-colors resize-y shadow-inner leading-relaxed focus:bg-white"
+                               value={block.content}
+                               onChange={(e) => {
+                                 const next = [...reportData.customBlocks];
+                                 next[index].content = e.target.value;
+                                 setReportData({ ...reportData, customBlocks: next });
+                               }}
+                               placeholder={lang === 'fr' ? 'Contenu additionnel...' : 'Additional content...'}
+                             />
+                          </div>
+                        ))}
+
+                        <div className="pt-4 flex justify-center border-t border-primary-silver/20 mt-4 mx-8">
+                          <button 
+                            onClick={() => setReportData({
+                              ...reportData, 
+                              customBlocks: [...reportData.customBlocks, { id: Math.random().toString(), title: lang === 'fr' ? "Nouveau Titre" : "New Title", content: "" }]
+                            })}
+                            className="text-xs uppercase tracking-widest text-primary-charcoal border border-primary-silver/40 px-6 py-2.5 hover:bg-primary-midnight hover:text-white hover:border-primary-midnight transition-colors flex items-center gap-2 mt-4"
+                          >
+                            + {lang === 'fr' ? 'Ajouter un bloc de texte' : 'Add text block'}
+                          </button>
                         </div>
                        </div>
                      ) : (
