@@ -37,7 +37,20 @@ export default function ChatUI({ initialMessages, lang = 'fr' }: { initialMessag
 
   useEffect(() => {
     if (scrollRef.current) {
+      // Unconditional scroll on mount
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      
+      // Only force scroll to bottom if user is already near the bottom
+      if (isNearBottom) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
     }
   }, [messages]);
 

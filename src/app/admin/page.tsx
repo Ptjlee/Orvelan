@@ -51,7 +51,7 @@ export default function AdminPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [chatLoading, setChatLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Publish state
   const [adminNotes, setAdminNotes] = useState("");
@@ -71,7 +71,19 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [selectedEntry]);
+
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatScrollRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 150;
+      if (isNearBottom) {
+        chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+      }
+    }
   }, [messages]);
 
   const handleLogin = (e: React.FormEvent) => {
@@ -115,9 +127,9 @@ export default function AdminPage() {
     }
   };
 
-  const loadMessages = async (userId: string) => {
+  const loadMessages = async (userId: string, isPolling = false) => {
     if (userId.startsWith('sanity_')) return; // No chat natively for old legacy backups
-    setChatLoading(true);
+    if (!isPolling) setChatLoading(true);
     try {
       const response = await fetch("/api/admin/messages", {
         method: "POST",
@@ -126,12 +138,16 @@ export default function AdminPage() {
       });
       const result = await response.json();
       if (result.success) {
-        setMessages(result.data || []);
+        setMessages(prev => {
+          const newData = result.data || [];
+          if (newData.length !== prev.length) return newData;
+          return prev;
+        });
       }
     } catch (err) {
       console.error(err);
     } finally {
-      setChatLoading(false);
+      if (!isPolling) setChatLoading(false);
     }
   };
 
@@ -172,7 +188,7 @@ ${act}`;
   useEffect(() => {
     if (!selectedEntry || selectedEntry.is_sanity) return;
     const interval = setInterval(() => {
-      loadMessages(selectedEntry.user_id);
+      loadMessages(selectedEntry.user_id, true);
     }, 5000);
     return () => clearInterval(interval);
   }, [selectedEntry, password]);
@@ -434,8 +450,24 @@ ${act}`;
                      {/* Admin Notes Box */}
                      {!selectedEntry.is_sanity ? (
                        <div className="mb-12 bg-[#FAFAFA] p-6 border border-primary-silver/20 opacity-100">
-                         <h3 className="text-sm uppercase tracking-widest font-medium text-primary-midnight mb-2">Commentaires / Rapport Final</h3>
-                         <p className="text-xs text-primary-charcoal/60 mb-4 tracking-wide">Rédigez le texte que le client verra sur son espace. Modifiez ou intégrez les données de l'IA.</p>
+                         <div className="flex justify-between items-start mb-4">
+                           <div>
+                             <h3 className="text-sm uppercase tracking-widest font-medium text-primary-midnight mb-2">Commentaires / Rapport Final</h3>
+                             <p className="text-xs text-primary-charcoal/60 tracking-wide">Rédigez le texte que le client verra sur son espace. Modifiez ou intégrez les données de l'IA.</p>
+                           </div>
+                           {selectedEntry.ai_analysis && (
+                             <button
+                               onClick={() => {
+                                 if (window.confirm("Êtes-vous sûr de vouloir remplacer le contenu par le brouillon IA?")) {
+                                   setAdminNotes(generateMarkdownTemplate(selectedEntry.ai_analysis, lang));
+                                 }
+                               }}
+                               className="text-[10px] uppercase font-bold tracking-widest border border-primary-copper/30 text-primary-copper px-3 py-1.5 hover:bg-primary-copper hover:text-white transition-colors bg-white/50"
+                             >
+                               Recharger Brouillon IA
+                             </button>
+                           )}
+                         </div>
                          <textarea 
                            className="w-full bg-white border border-primary-silver/40 p-4 min-h-[200px] text-sm focus:outline-none focus:border-primary-midnight font-light shadow-inner"
                            placeholder="Écrivez le retour final pour le client ici..."
@@ -495,7 +527,7 @@ ${act}`;
                         </h3>
                       </div>
                       
-                      <div className="flex-grow p-4 overflow-y-auto space-y-4 max-h-[500px] lg:max-h-none">
+                      <div ref={chatScrollRef} className="flex-grow p-4 overflow-y-auto space-y-4 max-h-[500px] lg:max-h-none">
                          {chatLoading ? (
                            <div className="h-full flex items-center justify-center text-xs text-primary-silver">Chargement...</div>
                          ) : messages.length === 0 ? (
@@ -518,7 +550,6 @@ ${act}`;
                              );
                            })
                          )}
-                         <div ref={messagesEndRef} />
                       </div>
 
                       <form onSubmit={handleSendMessage} className="p-4 bg-white border-t border-primary-silver/20">
