@@ -15,12 +15,14 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Orvelan | Conseil Stratégique pour Dirigeants",
   description: "Orvelan aide les dirigeants de PME et ETI à voir clairement leur entreprise.",
 };
 
 import Script from "next/script";
+import { Suspense } from "react";
+import { CookieConsent } from "@/components/CookieConsent";
 
 export default function RootLayout({
   children,
@@ -30,6 +32,22 @@ export default function RootLayout({
   return (
     <html lang="fr" className={`${garamond.variable} ${inter.variable}`}>
       <head>
+        {/* Google Tag Manager - Early Initialization */}
+        <Script id="cookie-consent-init" strategy="beforeInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            // Initialize denied by default for strict GDPR
+            gtag('consent', 'default', {
+              'analytics_storage': 'denied',
+              'ad_storage': 'denied',
+              'ad_user_data': 'denied',
+              'ad_personalization': 'denied',
+              'wait_for_update': 500
+            });
+            gtag('set', 'url_passthrough', true);
+          `}
+        </Script>
         {/* Google Tag Manager */}
         <Script id="google-tag-manager" strategy="beforeInteractive">
           {`
@@ -51,7 +69,12 @@ export default function RootLayout({
             style={{ display: 'none', visibility: 'hidden' }}
           />
         </noscript>
+        
         {children}
+
+        <Suspense fallback={null}>
+          <CookieConsent />
+        </Suspense>
       </body>
     </html>
   );
