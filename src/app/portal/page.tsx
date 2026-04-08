@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { Lock, FileText, CheckCircle, Clock, LogOut } from 'lucide-react';
+import { Lock, FileText, CheckCircle, Clock } from 'lucide-react';
 import ChatUI from './ChatUI';
 import { signout } from '@/app/(auth)/actions';
+import PrintButton from '@/components/PrintButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,9 +11,9 @@ const t = {
   fr: {
     logout: 'Déconnexion',
     headerTitle: 'Votre Diagnostic Stratégique',
-    headerSubtitle: "Basé sur votre audit et l'expertise d'Orvelan.",
+    headerSubtitle: "Basé sur votre auto-diagnostic et l'expertise d'Orvelan.",
     emptyTitle: 'Aucun diagnostic trouvé',
-    emptyDesc: "Vous n'avez pas encore complété l'audit initial. Pour recevoir votre stratégie personnalisée, veuillez démarrer le diagnostic.",
+    emptyDesc: "Vous n'avez pas encore complété l'auto-diagnostic initial. Pour recevoir votre stratégie personnalisée, veuillez démarrer le diagnostic.",
     startBtn: 'Démarrer le Diagnostic',
     analyzingTitle: 'Analyse en cours',
     analyzingDesc: "David est actuellement en train d'analyser vos réponses. Un plan stratégique sur-mesure est en cours de création.",
@@ -25,9 +26,9 @@ const t = {
   en: {
     logout: 'Log out',
     headerTitle: 'Your Strategic Diagnostic',
-    headerSubtitle: "Based on your audit and Orvelan's expertise.",
+    headerSubtitle: "Based on your self-assessment and Orvelan's expertise.",
     emptyTitle: 'No diagnostic found',
-    emptyDesc: "You haven't completed the initial audit yet. To receive your personalized strategy, please start the diagnostic.",
+    emptyDesc: "You haven't completed the initial self-assessment yet. To receive your personalized strategy, please start the diagnostic.",
     startBtn: 'Start Diagnostic',
     analyzingTitle: 'Analysis in progress',
     analyzingDesc: "David is currently analyzing your responses. A custom strategic plan is being created.",
@@ -122,10 +123,15 @@ export default async function PortalPage(props: { searchParams: SearchParams }) 
               </div>
             </div>
           ) : (
-            <div className="bg-white border border-primary-silver/20 rounded-sm p-10 shadow-sm">
+            <div id="report-container" className="bg-white border border-primary-silver/20 rounded-sm p-10 shadow-sm print:shadow-none print:border-none print:p-0">
               <div className="flex items-center gap-3 mb-8 pb-8 border-b border-primary-silver/20">
-                <CheckCircle className="w-6 h-6 text-emerald-600" />
-                <h3 className="text-xl font-medium text-emerald-900 tracking-wide uppercase text-sm">{current.readyTitle}</h3>
+                <CheckCircle className="w-6 h-6 text-emerald-600 print:hidden" />
+                <h3 className="text-xl font-medium text-emerald-900 tracking-wide uppercase text-sm print:hidden">{current.readyTitle}</h3>
+                
+                {/* Print Title Header visible only in PDF/Print */}
+                <div className="hidden print:block w-full">
+                  <h1 className="text-3xl font-serif text-primary-midnight border-b pb-4 mb-4">Orvelan - Diagnostic Stratégique</h1>
+                </div>
               </div>
               
               <div className="prose prose-stone max-w-none text-primary-charcoal font-light leading-relaxed">
@@ -136,10 +142,8 @@ export default async function PortalPage(props: { searchParams: SearchParams }) 
                 )}
               </div>
               
-              <div className="mt-12 pt-8 border-t border-primary-silver/20 flex justify-end">
-                 <button className="bg-primary-midnight text-white px-8 py-4 text-sm tracking-widest uppercase font-medium hover:bg-primary-copper transition-colors flex items-center gap-3">
-                   <FileText className="w-4 h-4" /> {current.downloadBtn}
-                 </button>
+              <div className="mt-12 pt-8 border-t border-primary-silver/20 flex justify-end print:hidden">
+                <PrintButton label={current.downloadBtn} />
               </div>
             </div>
           )}

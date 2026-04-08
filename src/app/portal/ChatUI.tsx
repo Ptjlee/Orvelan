@@ -15,14 +15,14 @@ type Message = {
 const t = {
   fr: {
     title: 'Espace Communication',
-    subtitle: 'Contactez le cabinet',
+    subtitle: 'Contacter Orvelan',
     emptyTitle: 'Aucun message',
     emptyDesc: 'Laissez une note ou posez une question à David. Il vous répondra directement ici.',
     placeholder: 'Écrivez votre message...',
   },
   en: {
     title: 'Communication Hub',
-    subtitle: 'Contact the firm',
+    subtitle: 'Contact Orvelan',
     emptyTitle: 'No messages',
     emptyDesc: 'Leave a note or ask David a question. He will answer you directly here.',
     placeholder: 'Write your message...',

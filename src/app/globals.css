@@ -32,3 +32,21 @@ body {
 @utility text-balance {
   text-wrap: balance;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #report-container, #report-container * {
+    visibility: visible;
+  }
+  #report-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+}

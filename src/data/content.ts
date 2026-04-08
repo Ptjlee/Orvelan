@@ -161,7 +161,7 @@ export const content = {
       title: "Où préférez-vous échanger ?",
       directTitle: "Email direct",
       directDesc: "Pas de formulaire si vous n'en avez pas envie.",
-      directEmail: "Hello@Orvelan.fr",
+      directEmail: "contact@orvelan.fr",
       reassurance: [
         "20 minutes. Pas plus.",
         "Gratuit et sans engagement.",
@@ -375,7 +375,7 @@ export const content = {
       title: "How would you prefer to connect?",
       directTitle: "Direct email",
       directDesc: "No form needed if you prefer not.",
-      directEmail: "Hello@Orvelan.fr",
+      directEmail: "contact@orvelan.fr",
       reassurance: [
         "20 minutes. No more.",
         "Free and with no commitment.",
