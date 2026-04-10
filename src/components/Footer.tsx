@@ -57,12 +57,15 @@ export function Footer({ lang }: { lang: "fr" | "en" }) {
 
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between text-xs text-primary-silver/80 uppercase tracking-widest font-medium">
         <p>© {new Date().getFullYear()} SASU Orvelan</p>
-        <div className="flex gap-6 mt-4 md:mt-0">
-          <a href="#" className="hover:text-primary-copper transition-colors">
+        <div className="flex gap-4 md:gap-6 mt-4 md:mt-0 flex-wrap">
+          <a href="/legal/politique-confidentialite" className="hover:text-primary-copper transition-colors">
             {t.legal1}
           </a>
-          <a href="#" className="hover:text-primary-copper transition-colors">
+          <a href="/legal/mentions-legales" className="hover:text-primary-copper transition-colors">
             {t.legal2}
+          </a>
+          <a href="/legal/cgu" className="hover:text-primary-copper transition-colors">
+            {lang === 'fr' ? "CGU" : "Terms"}
           </a>
         </div>
       </div>
