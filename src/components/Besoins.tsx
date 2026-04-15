@@ -4,6 +4,7 @@ import { content } from "@/data/content";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Plus, Minus } from "lucide-react";
+import Link from "next/link";
 
 export function Besoins({ lang }: { lang: "fr" | "en" }) {
   const t = content[lang].besoins;
@@ -66,7 +67,7 @@ export function Besoins({ lang }: { lang: "fr" | "en" }) {
                         </p>
                       ))}
                       <div className="mt-8">
-                        <a
+                        <Link
                           href={item.ctaHref.startsWith("#") ? `/?lang=${lang}${item.ctaHref}` : `${item.ctaHref}?lang=${lang}`}
                           className="inline-flex items-center gap-3 text-sm tracking-widest uppercase font-medium text-primary-midnight hover:text-primary-copper transition-colors"
                         >
@@ -74,7 +75,7 @@ export function Besoins({ lang }: { lang: "fr" | "en" }) {
                             +
                           </span>
                           {item.cta}
-                        </a>
+                        </Link>
                       </div>
                     </div>
                   </motion.div>
@@ -89,12 +90,12 @@ export function Besoins({ lang }: { lang: "fr" | "en" }) {
           <p className="text-primary-charcoal font-light max-w-lg">
             {t.subtitle}
           </p>
-          <a
+          <Link
             href="#solutions"
             className="bg-primary-midnight text-white px-7 py-3.5 text-sm font-medium hover:bg-primary-copper transition-colors rounded-sm whitespace-nowrap"
           >
             {t.ctaSolutions}
-          </a>
+          </Link>
         </div>
       </div>
     </section>

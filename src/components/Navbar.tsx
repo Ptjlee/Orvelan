@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { content } from "@/data/content";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export function Navbar({
   lang,
@@ -52,24 +53,24 @@ export function Navbar({
     >
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex justify-between items-center">
         {/* Logo */}
-        <a
+        <Link
           href={`/?lang=${lang}`}
           className="font-serif text-2xl tracking-tighter text-primary-midnight leading-none"
         >
           Orvelan.
-        </a>
+        </Link>
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8">
           <div className="flex gap-7">
             {links.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 className="text-primary-charcoal hover:text-primary-copper transition-colors text-sm font-medium"
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -100,20 +101,20 @@ export function Navbar({
 
             <div className="flex items-center gap-4 border-l border-primary-silver/30 pl-5 ml-1">
               {/* Espace Client */}
-              <a
+              <Link
                 href={`/portal?lang=${lang}`}
                 className="text-primary-midnight hover:text-primary-copper transition-colors text-sm font-medium whitespace-nowrap"
               >
                 {lang === "fr" ? "Espace Client" : "Client Portal"}
-              </a>
+              </Link>
 
               {/* CTA */}
-              <a
+              <Link
                 href={`/register?lang=${lang}`}
                 className="bg-primary-copper text-white px-5 py-2.5 text-sm font-medium hover:bg-primary-midnight transition-colors rounded-sm whitespace-nowrap"
               >
                 {t.diagnostic}
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -152,22 +153,22 @@ export function Navbar({
               </button>
             </div>
             {links.map((link) => (
-              <a
+              <Link
                 key={link.name}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
                 className="text-xl font-serif text-primary-midnight"
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
-            <a
+            <Link
               href={`/register?lang=${lang}`}
               onClick={() => setIsOpen(false)}
               className="bg-primary-copper text-white w-full py-4 text-center mt-2 rounded-sm text-sm font-medium"
             >
               {t.diagnostic}
-            </a>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>

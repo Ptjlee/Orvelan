@@ -2,6 +2,7 @@
 
 import { content } from "@/data/content";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export function About({ lang }: { lang: "fr" | "en" }) {
   const t = content[lang].about;
@@ -30,18 +31,18 @@ export function About({ lang }: { lang: "fr" | "en" }) {
               {t.teaser}
             </p>
             <div className="flex flex-wrap gap-4">
-              <a
+              <Link
                 href={detailsHref}
                 className="border border-primary-midnight text-primary-midnight px-7 py-3.5 text-sm font-medium hover:border-primary-copper hover:text-primary-copper transition-colors rounded-sm"
               >
                 {t.ctaDetails}
-              </a>
-              <a
+              </Link>
+              <Link
                 href="#contact"
                 className="bg-primary-copper text-white px-7 py-3.5 text-sm font-medium hover:bg-primary-midnight transition-colors rounded-sm"
               >
                 {t.ctaContact}
-              </a>
+              </Link>
             </div>
           </motion.div>
         </div>

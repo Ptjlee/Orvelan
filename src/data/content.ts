@@ -198,7 +198,6 @@ export const content = {
       label: "Créateur Orvelan",
       name: "David Martinez",
       role: "Fondateur, Orvelan",
-      challenge: "You can challenge me ;-)",
       bio: [
         "J'ai passé 25 ans dans des organisations en mouvement — forte croissance, transformation culturelle, consolidation post-acquisition, déploiement international. Pas dans des salles de réunion : sur le terrain, avec les équipes, dans les moments où ça coince vraiment.",
         "Pendant 14 ans chez Hyundai Motor Europe, j'ai construit un siège européen de zéro — 70 personnes au départ, 300 à l'arrivée, plus de 40 nationalités, la coordination de 12 pays. J'ai traversé 8 présidents successifs, piloté des transformations culturelles profondes, aligné des organisations locales avec des directives globales sans perdre ce qui faisait leur force. Avant de partir, j'ai recruté et formé mon successeur. L'organisation a continué sans rupture. C'est ça, construire quelque chose qui tient.",
@@ -412,7 +411,6 @@ export const content = {
       label: "Orvelan founder",
       name: "David Martinez",
       role: "Founder, Orvelan",
-      challenge: "You can challenge me ;-)",
       bio: [
         "I spent 25 years in organisations in motion — high growth, cultural transformation, post-acquisition consolidation, international deployment. Not in meeting rooms: in the field, with teams, in the moments where things really get stuck.",
         "During 14 years at Hyundai Motor Europe, I built a European headquarters from scratch — 70 people at the start, 300 at the end, more than 40 nationalities, coordination across 12 countries. I went through 8 successive presidents, led deep cultural transformations, aligned local organisations with global directives without losing what made them strong. Before leaving, I recruited and trained my successor. The organisation continued without disruption. That is what it means to build something that holds.",

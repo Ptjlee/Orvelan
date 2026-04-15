@@ -1,6 +1,7 @@
 "use client";
 
 import { content } from "@/data/content";
+import Link from "next/link";
 
 export function Footer({ lang }: { lang: "fr" | "en" }) {
   const t = content[lang].footer;
@@ -26,18 +27,18 @@ export function Footer({ lang }: { lang: "fr" | "en" }) {
             <span className="text-xs uppercase tracking-[0.2em] font-medium text-primary-midnight mb-2 border-b border-primary-silver/20 pb-2">
               Menu
             </span>
-            <a href="#besoins" className="hover:text-primary-copper transition-colors">
+            <Link href={`/?lang=${lang}#besoins`} className="hover:text-primary-copper transition-colors">
               {nav.besoins}
-            </a>
-            <a href="#solutions" className="hover:text-primary-copper transition-colors">
+            </Link>
+            <Link href={`/?lang=${lang}#solutions`} className="hover:text-primary-copper transition-colors">
               {nav.solutions}
-            </a>
-            <a href="#about" className="hover:text-primary-copper transition-colors">
+            </Link>
+            <Link href={`/?lang=${lang}#about`} className="hover:text-primary-copper transition-colors">
               {lang === "fr" ? "Qui sommes-nous" : "Who we are"}
-            </a>
-            <a href="#contact" className="hover:text-primary-copper transition-colors">
+            </Link>
+            <Link href={`/?lang=${lang}#contact`} className="hover:text-primary-copper transition-colors">
               {nav.contact}
-            </a>
+            </Link>
           </div>
 
           {/* Email only — address and phone removed per David's request */}
@@ -58,15 +59,15 @@ export function Footer({ lang }: { lang: "fr" | "en" }) {
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 flex flex-col md:flex-row justify-between text-xs text-primary-silver/80 uppercase tracking-widest font-medium">
         <p>© {new Date().getFullYear()} SASU Orvelan</p>
         <div className="flex gap-4 md:gap-6 mt-4 md:mt-0 flex-wrap">
-          <a href="/legal/politique-confidentialite" className="hover:text-primary-copper transition-colors">
+          <Link href={`/legal/politique-confidentialite?lang=${lang}`} className="hover:text-primary-copper transition-colors">
             {t.legal1}
-          </a>
-          <a href="/legal/mentions-legales" className="hover:text-primary-copper transition-colors">
+          </Link>
+          <Link href={`/legal/mentions-legales?lang=${lang}`} className="hover:text-primary-copper transition-colors">
             {t.legal2}
-          </a>
-          <a href="/legal/cgu" className="hover:text-primary-copper transition-colors">
+          </Link>
+          <Link href={`/legal/cgu?lang=${lang}`} className="hover:text-primary-copper transition-colors">
             {lang === 'fr' ? "CGU" : "Terms"}
-          </a>
+          </Link>
         </div>
       </div>
     </footer>

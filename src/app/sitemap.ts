@@ -3,9 +3,7 @@ import { MetadataRoute } from 'next';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://www.orvelan.fr';
 
-  // We primarily want them to index the core landing pages representing the marketing content.
-  // The private SaaS portal / login routes shouldn't generally be indexed as heavily, 
-  // but we provide the core domains here.
+  // We strictly want them to index the core landing pages and the about page.
   return [
     {
       url: `${baseUrl}/?lang=fr`,
@@ -17,31 +15,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${baseUrl}/?lang=en`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/david?lang=fr`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly',
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/login?lang=fr`,
+      url: `${baseUrl}/david?lang=en`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/login?lang=en`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/register?lang=fr`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/register?lang=en`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
+      priority: 0.9,
     }
   ];
 }
